@@ -4,3 +4,8 @@ A school project to create a radar using ESP32, Adafruit LTR329 sensor and Micro
 
 The project is initially created by prof. Sebatiano Melita.
 
+This project includes a web page for remote monitoring and control. This is a screenshot of the page:
+
+![Web screenshot](web-screenshot.jpeg)
+
+A video of the web page in action is also available [here](https://drive.google.com/file/d/1KjS-0TWMNAd9SawNiWF4eYCHru64Aw-G/view?usp=sharing).
