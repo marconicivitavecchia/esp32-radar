@@ -288,6 +288,7 @@ else:
     
 
 radarFW = readFW()
+time.sleep(0.5)
 
 i = 0
 ok = False
@@ -402,13 +403,7 @@ while True:
                             
             if t2.update() > pollTime:
                 t2.reset()
-                #print('d', d)
                 print('Acceso',S_ON.value())
-                #print('dd', dd)
-                #print('Soglia', soglia)
-                #print('edelta', edelta)
-                #S_ON.value(0)
-                #print('Spengo radar')
                 
                 if not sta_if.isconnected():
                     (ip, wlan_mac, sta_if) = wifi_connect(WIFI_SSID, WIFI_PASSWORD)
@@ -443,21 +438,7 @@ while True:
                 
                 #if S_ON.value():
                 #    radar.flushUart()
-                #    data = radar.printTargets()
-                    
-                
-                #if data is None:
-                #    lista_x = [0, 0, 0]
-                #    lista_y = [0, 0, 0]
-                #    lista_v = [0, 0, 0]
-                #    lista_dr = [0, 0, 0]
-                #else:
-                    # Assegna i valori con una lista vuota come valore di default
-                    #lista_x = data.get('lista_x', [])
-                    #lista_y = data.get('lista_y', [])
-                    #lista_v = data.get('lista_v', [])
-                    #lista_dr = data.get('lista_dr', [])
-                    
+                #    data = radar.printTargets()                    
                                    
                 timestamp = getTimestamp()
                       
@@ -500,13 +481,6 @@ while True:
         print(ve)
     except OSError as e:
                 print(e)
-                #if sta_if.isconnected():
-                    #try:
-                     #   client.connect(False)
-                      #  time.sleep(0.1)
-                      #  client.publish(MQTT_PUSHTOPIC, message)
-                    #except OSError as e:
-                    #    print("MQTT connect error")  
 
             # main loop delay        
             #time.sleep(5)
