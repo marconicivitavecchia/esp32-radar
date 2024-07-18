@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Radar Display</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+	<script>
+		if (typeof p5 === 'undefined') {
+            document.write('<script src="p5.js"><\/script>');
+        }
+	</script>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+	<script>
+        if (typeof mqtt === 'undefined') {
+            document.write('<script src="mqtt.min.js"><\/script>');
+        }
+    </script>
+	<link rel="stylesheet" href="gridlayout.css">
+</head>
+<body>
+	<script>
+		const broker1 = 'wss://proxy.marconicloud.it:8884'; // Sostituisci con l'URL del tuo broker MQTT e assicurati che utilizzi wss (WebSocket Secure) se necessario
+		const broker2 = 'ws://broker.emqx.io:8083/mqtt';
+		const pushtopic = 'radar/measures'; // Sostituisci con il tuo topic MQTT
+		const cmdtopic = 'radar/commands'; // Sostituisci con il tuo topic MQTT
+		const statetopic = 'radar/state'; // Sostituisci con il tuo topic MQTT
+		const boardId = "radar-0164e833638ff4";
+    </script>
+	<div class='grid-container'>
+		<div class='col-12 col-s-12' id='txt-banner'  class="header"><h2 class="header">Monitoraggio radar</h2></div>
+	    <div class='col-12 col-s-12' id="timestamp"></div>
+		<div class='col-9 col-s-12 boxed' id='radar'></div>
+        <div class='col-3 col-s-12 boxed' id="sensorData">
+			<p>Board ID: <span class="boardID">N/A</span></p>
+            <p>Temperatura: <span class="temp">N/A</span></p>
+            <p>Pressione: <span class="press">N/A</span></p>
+            <p>Umidità: <span class="hum">N/A</span></p>
+            <p>Gas: <span class="gas">N/A</span></p>
+			<p>Luce visibile: <span class="visible">N/A</span></p>
+            <p>Luce infrarossa: <span class="infrared">N/A</span></p>
+            <p>Luce totale: <span class="total">N/A</span></p>
+        </div>
+				
+		<div id='poll1' class='col-2 col-s-12'>
+			<div class="txt"><p >Polling time</p></div>
+			<div class="button-container">
+				<input class="poll1 button-large" type="time" step="1" />
+				<input class="send button-small button-blue" type="button" value="Invia"/>
+			</div>
+		</div>
+		<div class='col-2 col-s-12' id='servel'>
+			<div class="txt"><p >Radar serial</p></div>
+			<div class="button-container">
+				<select name="vels" class="servel button-large">
+					<option value="9600">9600</option>
+					<option value="19200">19200</option>
+					<option value="38400">38400</option>
+					<option value="57600">57600</option>
+					<option value="115200">115200</option>
+					<option value="230400">230400</option>
+					<option value="256000">256000</option>
+					<option value="460800">460800</option>
+				</select>
+				<input class="send button-small button-blue" type="button" value="Invia"/>
+			</div>
+		</div>
+		<div class='col-2 col-s-12' id='radarmode'>
+			<div class="txt"><p >Radar mode</p></div>
+			<input type="button" class="send button-blue" value="Invia">
+		</div>		
+		<div class='col-2 col-s-12' id='radareboot'>
+			<div class="txt"><p >Radar reboot</p></div>
+			<input type="button" class="send button-blue" value="Invia">
+		</div>
+		<div class='col-2 col-s-12' id='radarstate'>
+			<div class="txt"><p >Radar state</p></div>
+			<input type="button" class="send button-blue" value="Invia">
+		</div>
+		<div class='col-2 col-s-12' id='radarinvert'><p class="txt">Inverti griglia</p><input type="button" class="send button-blue" value="Invia"></div> 
+	</div>
+	<div class='col-12 col-s-12' id='txt-nulla' class='footer'><h2 class="footer">Monitoraggio radar</h2></div>	
+	
+	<script src="radar.js"></script>
+</body>
+</html>
