@@ -1,4 +1,8 @@
 
+//const myboard = 'micropython-weather-01seba0264e833638ff4'
+//const broker = 'wss://proxy.marconicloud.it:8884'; // Sostituisci con l'URL del tuo broker MQTT e assicurati che utilizzi wss (WebSocket Secure) se necessario
+//const topic = 'radar/misure'; // Sostituisci con il tuo topic MQTT
+
 var boardData = {
 				radarData: {
 					x: [0, 0, 0],
@@ -96,9 +100,8 @@ function connectToBroker() {
 		client.on('offline', (err) => {
 			console.error(`Error with MQTT broker ${brokerUrl}`);
 			// Handle error, optionally switch to the next broker
-			//switchToNextBroker();
+			switchToNextBroker();
 		});
-		
 		
 		client.on('error', (error) => {
 			console.error('Errore di connessione MQTT:', error);
