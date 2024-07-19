@@ -183,7 +183,7 @@ const commandMap = {
 			},
 		};		
 
-// Sends, via a JSON, the command to perform configuration settings on the IoT device in a PULL mode.
+// Sends, via a JSON, the command to perform configuration settings on the IoT device in a PUSH mode.
 // These are commands with parameters that call functions with arguments.
 function pubAtt(att, val, bId, type) {// type: write, read
 	//const timestamp = getTimestamp();
