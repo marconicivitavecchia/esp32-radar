@@ -107,9 +107,9 @@ def pubAllState():
      print(f"Reporting to MQTT topic {MQTT_STATETOPIC}: {message}")
      client.publish(MQTT_STATETOPIC, message)
 
-# Funzione di callback per gestire i messaggi in arrivo
+# Callback function to manage incoming messages
 def sub_cb(topic, msg):
-    print("Messaggio ricevuto su argomento %s: %s" % (topic, msg))
+    print("Message received on topic %s: %s" % (topic, msg))
     try:
         # Decodifica il messaggio JSON
         data = ujson.loads(msg)
@@ -118,9 +118,7 @@ def sub_cb(topic, msg):
             process_json(command_map, data)
     except ValueError as e:
         print("Errore di decodifica JSON:", e)
-# Example usage
-#radar.enable_configuration_mode()
-#radar.end_configuration_mode()
+
 def readRadarMode():
     mode = None
     if radar.enable_configuration_mode():
@@ -249,10 +247,18 @@ def leggi_reboot():
     print("Leggi reboot")
     pubStateAtt("radareboot", 1) 
     
-# Mappatura dei comandi
-# Mappa delle funzioni da eseguire su un certo path dei comandi ricevuti (stati)
-# devono coincidere con i path corrispondenti dell'oggetto JSON in trasmissione
-# le celle di elenchi associativi possono essere trattati come campi di un oggetto indifferentemente 
+# Map of the functions to be executed on a certain path of the received commands (statuses).
+# They must coincide with the corresponding paths of the JSON object being transmitted.
+# Read-only commands are parameterless and can be invoked in JSON as cells in a command list. For example, with JSON
+# "radar": [polltime, servel] 
+# but they must be stored as field-value pairs of an object because in Python dictionary arrays are encoded as objects.
+# Write-only commands are parameterized and must be invoked in JSON as field, value pairs. For example, with JSON
+# "radar": {
+# 	"write":{
+# 		polltime: 1
+# 		servel: 115200
+# 	},
+# }
 command_map = {
     #"boardID": check_id,
     "configs": {
@@ -288,7 +294,6 @@ else:
     
 
 radarFW = readFW()
-time.sleep(0.5)
 
 i = 0
 ok = False
@@ -351,7 +356,7 @@ while not ok:
         client1.set_callback(sub_cb)
         client2.set_callback(sub_cb)        
         time.sleep(0.5)
-        ntptime.host = '3.pool.ntp.org'
+        ntptime.host = NTP_SERVER
         ntptime.timeout = 5
         ntptime.settime()
         lastTimeUpdate = time.time()
@@ -393,6 +398,11 @@ while True:
             #print('t2',t2.peek())
             t1.reset()
             
+            # The main broker is the preferred broker
+            # The backup broker is choosen only when the main broker is unavailable
+            # If the backup broker is active, the main broker is periodically tested and
+            # selected if again avalilable
+            # The same behaviour is applied by the IoT device
             if t3.update() > 60000:
                 t3.reset()
                 if  client == client2:
@@ -425,21 +435,15 @@ while True:
                     hum =  bme.humidity
                     gas = bme.gas
                     
-                ch0, ch1, lux_ch0, lux_ch1, total_lux = sensor.get_lux()
-                #print("Canale 0 (luce visibile):", ch0, "lux")
-                #print("Canale 1 (luce infrarossa):", ch1, "lux")
-                #print("Lux luce visibile:", lux_ch0, "lux")
-                #print("Lux luce infrarossa:", lux_ch1, "lux")
-                #print("Lux totale:", total_lux, "lux")
-                
+                ch0, ch1, lux_ch0, lux_ch1, total_lux = sensor.get_lux()               
                 visible = lux_ch0
                 infrared = lux_ch1
                 total = total_lux
                 
                 #if S_ON.value():
                 #    radar.flushUart()
-                #    data = radar.printTargets()                    
-                                   
+                #    data = radar.printTargets()
+                                    
                 timestamp = getTimestamp()
                       
                 message = ujson.dumps(
@@ -480,9 +484,5 @@ while True:
     except ValueError as ve:
         print(ve)
     except OSError as e:
-                print(e)
-
-            # main loop delay        
+                print(e)    
             #time.sleep(5)
-
-
