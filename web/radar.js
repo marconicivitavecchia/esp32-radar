@@ -3,6 +3,7 @@
 //const broker = 'wss://proxy.marconicloud.it:8884'; // Sostituisci con l'URL del tuo broker MQTT e assicurati che utilizzi wss (WebSocket Secure) se necessario
 //const topic = 'radar/misure'; // Sostituisci con il tuo topic MQTT
 
+// data structure where the measurements sent by the device via MQTT (PUSH mode) are stored
 var boardData = {
 				radarData: {
 					x: [0, 0, 0],
@@ -27,10 +28,19 @@ var boardData = {
 			
 var fw = "";
 
-// Mappa delle funzioni da eseguire su un certo path dei comandi ricevuti (stati)
-// devono coincidere con i path corrispondenti dell'oggetto JSON in trasmissione
-// sono tutti comandi di aggiornamento stato e quindi richiamano solo funzioni con parametri (no liste di funzioni senza parametri)
-// è utilizzata per il parsing dei comandi singoli
+
+// Map of the functions to be executed on a certain path of the received commands (statuses).
+// They must coincide with the corresponding paths of the JSON object being transmitted.
+// Read-only commands are parameterless and can be invoked in JSON as cells in a command list. For example, with JSON
+// "radar": [polltime, servel] 
+// but they must be stored as field-value pairs of an object because in JS associative arrays are encoded as objects.
+// Write-only commands are parameterized and must be invoked in JSON as field, value pairs. For example, with JSON
+// "radar": {
+// 	"write":{
+// 		polltime: 1
+// 		servel: 115200
+// 	},
+// }
 const commandMap = {
 			radar: {
 				fw: (value) => {
@@ -74,9 +84,14 @@ const commandMap = {
 		};		
 
 // List of MQTT brokers to connect to
+// the main broker is the preferred broker
+// The backup broker is choosen only when the main broker is unavailable
+// If the backup broker is active, the main broker is periodically tested and
+// selected if again avalilable
+// The same behaviour is applied by the IoT device
 const brokerUrls = [
-    broker1,
-    broker2
+    broker1, // main broker
+    broker2 // backup broker
 ];
 
 let currentBrokerIndex = 0;
@@ -124,7 +139,9 @@ function connectToBroker() {
 				console.log('Statetopic:', statetopic);
 				
 				if( topic === pushtopic){		   
-					// Aggiorna i dati per questo boardId (vengono letti dalla funzione draw delle canvas)
+					// Update the data structure for this boardId. 
+					// Radar measurements are read periodically by the canvas draw() function 
+					// The sensor data are immediately printed on the output boxes by the updateBoardUI() function.
 					boardData = {
 						radarData: {
 							x: roundArrTo(data.radar.x, 2, 1000),
@@ -181,7 +198,7 @@ setInputListeners();
 
 //window.onload = pubReadAtt(boardId, "allState");
 		
-// Funzione per pubblicare via MQTT un comando asincrono con parametro
+// Function to publish a generic asynchronous command with parameter via MQTT
 function pubAtt(att, val, bId, type) {// type: write, read
 	//const timestamp = getTimestamp();
 	const message = JSON.stringify({
@@ -201,13 +218,13 @@ function pubAtt(att, val, bId, type) {// type: write, read
 	});
 }
 
-// Funzione per pubblicare via MQTT un comando asincrono di lettura (senza parametri)
+// Function to publish a read-only asynchronous command via MQTT (functions without parameters)
 function pubReadAtt(bId, att) {// type: write, read
 	//const timestamp = getTimestamp();
 	const message = JSON.stringify({
 		boardID: bId,
 		configs: {
-			read:[att],// lista comandi di lettura senza parametri
+			read:[att],//list of read only commands without parameters
 			}
 	});
 	client.publish(cmdtopic, message, (error) => {
@@ -234,20 +251,22 @@ function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
-// Individua i campi di valore degli oggetti modificati da un comando
-// riporta il valore effettivamente impostato sul dispositivo
+// Identifies, in the web interface, the value fields of the objects modified by a command.
+// Reports the value actually set on the device obtained from the feedback channel via MQTT
 function setElem(type, val, target='.send'){
 	console.log('type', type);
 	console.log('val', val);
 	console.log('str', `${type}`);
 	let elem = document.getElementById(`${type}`);
-	elem.style.backgroundColor = "#ffffff";
+	elem.style.backgroundColor = "#ffffff"; // resets the wait signal for command feedback
 	let inputelem = elem.querySelector(target);
 	inputelem.value = val;
 }
 
-// Parser dei dati JSON ricevuti (stati asincroni) ricorsivo
-// Restituisce il path del command map da eseguire e lo richiama
+// Recursive parser of JSON data received asynchronously (representing the state of the device) 
+// Returns the path of the command in the received JSON data structure. 
+// The path must correspond to the path of the function to be called in the data structure of the command map. 
+// Invokes the function which, in the command map, has its pointer on that path.
 function processJson(commandMap, jsonObj, basePath = []) {
     for (const key in jsonObj) {
         if (jsonObj.hasOwnProperty(key)) {
@@ -257,18 +276,18 @@ function processJson(commandMap, jsonObj, basePath = []) {
 				console.log('currentPath:', currentPath);
 				console.log('value:', value);
                 processJson(commandMap, value, currentPath);
-            } else if (Array.isArray(value)) {// se è una lista di funzioni senza parametri
+            } else if (Array.isArray(value)) {// if it is a list of functions without parameters
                 for (const item of value) {
                     executeCommand(commandMap, [...currentPath, item]);
                 }
-            } else {// se è il campo chiave (nome della funzione) - valore (funzione con parametro)
+            } else {// if it is the field (key, value) corresponding to the pair (function name, list of function parameters)
                 executeCommand(commandMap, currentPath, value);  
             }
         }
     }
 }
 
-// Funzione che richiama il path di comando generato dal parser dei comandi JSON
+// Function that retrieves and invoke the function at the command path
 function executeCommand(commandMap, commandPath, parameters = null) {
     let currentLevel = commandMap;
     for (const key of commandPath) {
@@ -304,7 +323,7 @@ function millisToTimeString(millis) {
     return `${hours}:${minutes}:${seconds}`;
 }
 
-// Associa i listener dei comandi agli elementi di input
+// Bind command listeners to input elements
 function setInputListeners() {
     let poll1div = document.getElementById('poll1');// Trova l'id del contenitore grid degli input
 	let poll1send = poll1div.querySelector('.send');// Trova la classe dell'oggetto di input che riceve l'evento utente
@@ -318,7 +337,7 @@ function setInputListeners() {
 		// Calcola i millisecondi
 		const milliseconds = ((hours * 3600) + (minutes * 60) + seconds) * 1000;
 		pubAtt("polltime", milliseconds, boardId, "write");
-		poll1div.style.backgroundColor = "#E67E22";
+		poll1div.style.backgroundColor = "#E67E22"; // activate the wait signal for command feedback
 	}
 	
 	let servel = document.getElementById('servel');// Trova l'id del contenitore grid degli input
@@ -328,7 +347,7 @@ function setInputListeners() {
 		const serValue = servelval.value;	
 		console.log('serValue', serValue);
 		pubAtt("servel", serValue, boardId, "write");
-		servel.style.backgroundColor = "#E67E22";
+		servel.style.backgroundColor = "#E67E22"; // activate the wait signal for command feedback
 	}
 	
 	let radarmode = document.getElementById('radarmode');// Trova l'id del contenitore grid degli input
@@ -347,21 +366,21 @@ function setInputListeners() {
 			val = "singolo";
 		}	
 		pubAtt("radarmode", val, boardId, "write");
-		radarmode.style.backgroundColor = "#E67E22";
+		radarmode.style.backgroundColor = "#E67E22"; // activate the wait signal for command feedback
 	}
 	
 	let radareboot = document.getElementById('radareboot');// Trova l'id del contenitore grid degli input
 	let radarebootsend = radareboot.querySelector('.send');// Trova la classe dell'oggetto di input che riceve l'evento utente
 	radarebootsend.onclick = () => {
 		pubAtt("radareboot", "1", boardId, "write");
-		radareboot.style.backgroundColor = "#E67E22";
+		radareboot.style.backgroundColor = "#E67E22"; // activate the wait signal for command feedback
 	}
 	
 	let radarstate = document.getElementById('radarstate');// Trova l'id del contenitore grid degli input
 	let radarstatesend = radarstate.querySelector('.send');// Trova la classe dell'oggetto di input che riceve l'evento utente
 	radarstatesend.onclick = () => {
 		pubAtt("radartoggle", "1", boardId, "write");
-		radarstate.style.backgroundColor = "#E67E22";
+		radarstate.style.backgroundColor = "#E67E22"; // activate the wait signal for command feedback
 	}
 	
 	let radarinvert = document.getElementById('radarinvert');// Trova l'id del contenitore grid degli input
@@ -377,8 +396,8 @@ function setInputListeners() {
 	}
 }
 
-// Aggiornamento massivo degli output misure
-// è utilizzata per l'aggiornamento massivo di tutte le misure 
+// Massive update of measurement outputs
+// is used for the massive update of all measurements
 function updateBoardUI() {
    
     let timestampElement = document.getElementById('timestamp');
@@ -392,8 +411,6 @@ function updateBoardUI() {
     sensorDataElement.querySelector('.visible').innerText = `${boardData.luxData.visible} Lux`;
     sensorDataElement.querySelector('.infrared').innerText = `${boardData.luxData.infrared} Lux`;
     sensorDataElement.querySelector('.total').innerText = `${boardData.luxData.total} Lux`;
-
-    // Aggiorna il radar (sezione 3D) se necessario
 }
 
 
