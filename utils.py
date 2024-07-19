@@ -107,6 +107,7 @@ def wifi_connect(ssid, key):
     except OSError as e:
         raise  # re raises the previous exception
 
+# Function that retrieves and invoke the function at the command path
 def execute_command(command_map, command_path, parameters=None):
     current_level = command_map
     for key in command_path:
@@ -123,7 +124,11 @@ def execute_command(command_map, command_path, parameters=None):
             current_level()
     else:
         print(f"Comando finale non è una funzione: {'/'.join(command_path)}")
-      
+
+# Recursive parser of JSON data received asynchronously (representing the state of the device) 
+# Returns the path of the command in the received JSON data structure. 
+# The path must correspond to the path of the function to be called in the data structure of the command map. 
+# Invokes the function which, in the command map, has its pointer on that path.
 def process_json(command_map, json_obj, base_path=[]):
     for key, value in json_obj.items():
         current_path = base_path + [key]
