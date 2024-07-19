@@ -1,4 +1,4 @@
-# ESP32 Hi-Link HLK-LD2450 Radar
+# ESP32 with Hi-Link HLK-LD2450 Radar
 
 A school project to create a radar using ESP32, Adafruit LTR329 sensor, Hi-Link HLK-LD2450 radar and MicroPython.
 
