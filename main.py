@@ -69,6 +69,8 @@ bme = BME680_I2C(i2c=i2c, address=0x76)
 # Create Radar instance
 #radar = Radar(uart)
 
+# Partial JSON of the single states that are retrieved in PULL mode from the web interface
+# upon receipt of a status request command
 def pubStateAtt(att, val):
      timestamp = getTimestamp()
      message = ujson.dumps(
@@ -89,6 +91,9 @@ def pubAllState():
      radarmodeval = readRadarMode()
      fwval = radarFW
      rstate = "on" if S_ON.value() else "off"
+     
+     # Complete JSON of all states of the system that are retrieved in PULL mode from the web interface
+     # upon receipt of a status request command
      message = ujson.dumps(
         {
             "radar": {
@@ -263,14 +268,14 @@ def leggi_reboot():
 command_map = {
     #"boardID": check_id,
     "configs": {
-        "write": {# funzioni con parametri
+        "write": {# commands whose reception causes a configuration action on the system
             "polltime": scrivi_pollTime,
             "servel": scrivi_servel,
             "radarmode": scrivi_radarMode,
             "radareboot": scrivi_radarReboot,
             "radartoggle": scrivi_radarToggle #scrivi_radarFactory,
         },
-        "read": {# funzioni senza parametri, sono liste ma possono essere trattate come campi di un oggetto
+        "read": {# commands whose reception causes the sending of a system status
             "radarfw": leggi_radarfw,
             "servel": leggi_servel,
             "pollTime": leggi_pollTime,
@@ -446,7 +451,8 @@ while True:
                 #    data = radar.printTargets()
                                     
                 timestamp = getTimestamp()
-                      
+                
+                # Json of the measurements sent in push mode to the MQTT broker
                 message = ujson.dumps(
                     {
                         "tempSensor": {
