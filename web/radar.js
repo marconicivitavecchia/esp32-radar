@@ -196,9 +196,10 @@ function switchToNextBroker() {
 connectToBroker();
 setInputListeners();
 
-//window.onload = pubReadAtt(boardId, "allState");
+// window.onload = pubReadAtt(boardId, "allState");
 		
-// Function to publish a generic asynchronous command with parameter via MQTT
+// Sends, via a JSON, the command to perform configuration settings on the IoT device in a PULL mode.
+// These are commands with parameters that call functions with arguments.
 function pubAtt(att, val, bId, type) {// type: write, read
 	//const timestamp = getTimestamp();
 	const message = JSON.stringify({
@@ -218,7 +219,8 @@ function pubAtt(att, val, bId, type) {// type: write, read
 	});
 }
 
-// Function to publish a read-only asynchronous command via MQTT (functions without parameters)
+// Sends, via a JSON, the command to execute the request, in a PULL mode, for status information on the IoT device.
+// These are commands without parameters that call functions without arguments encoded in the JSON as a list of names in an array.
 function pubReadAtt(bId, att) {// type: write, read
 	//const timestamp = getTimestamp();
 	const message = JSON.stringify({
