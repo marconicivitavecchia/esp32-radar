@@ -171,6 +171,7 @@ def scrivi_radarToggle(val):
         S_ON.value(1)
     leggi_radarState()
 # Funzioni di comando
+
 def scrivi_pollTime(valore):
     global pollTime
     print(f"Scrivi pollTime a {valore}")
