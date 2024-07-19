@@ -8,6 +8,7 @@ MQTT_CLIENT_ID = "radar-01"
 # The same behaviour is applied by the IoT device
 MQTT_BROKER1 = "mqtt.example.com"
 MQTT_BROKER2 = "mqtt2.example.com"
+NTP_SERVER = '3.pool.ntp.org
 MQTT_USER = ""
 MQTT_PASSWORD = ""
 MQTT_PUSHTOPIC = "radar/measures"
