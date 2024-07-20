@@ -262,10 +262,10 @@ def leggi_reboot():
 # but they must be stored as field-value pairs of an object because in Python dictionary arrays are encoded as objects.
 # Write-only commands are parameterized and must be invoked in JSON as field, value pairs. For example, with JSON
 # "configs": {
-# 	"write":{
-# 		"polltime": 1
-# 		"servel": 115200
-# 	},
+# 	  "write":{
+# 	     "polltime": 1
+# 		 "servel": 115200
+# 	  },
 # }
 command_map = {
     #"boardID": check_id,
