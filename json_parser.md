@@ -11,14 +11,14 @@ Map of the functions to be executed on a certain path of the received commands (
 ```"radar": ["polltime", "servel"]```  but they must be stored as field-value pairs of an object because in Python dictionary arrays are encoded as objects.
 - Write-only commands are parameterized and must be invoked in JSON as field, value pairs. For example, with JSON:
 
-        ```Json
-        "radar": {
-                "write":{
-                        "polltime": 1
-                        "servel": 115200
-                },
-         }
-        ```
+```Json
+"radar": {
+        "write":{
+                "polltime": 1
+                "servel": 115200
+        },
+ }
+```
 
 ``` Python
 command_map = {
