@@ -2,14 +2,6 @@
 
 # **MQTT Messages**
 
-## **Confirmed Messages**
-
-The **confirmation** of messages sent by the receiver is normally not necessary in the case of **sensors**. In fact, if a sending by a sensor is not successful, it is useless to request the retransmission of data that will soon arrive with a more updated measurement.
-
-Confirmation, on the other hand, is expected for **command** or **configuration** functions. For example, in the case of buttons, transit detectors or alarms in which the sending of the message occurs sporadically and in a completely **asynchronous** manner (i.e. not predictable by the receiver), it might be desirable to have feedback from the protocol through a confirmation mechanism based on **ack**. But this is not always possible.
-
-**Confirmation**, however, could also be managed only by the **application layer** (not by the protocol) using a **feedback topic** (or state) to send the value of the current state immediately after it is affected by an incoming command on the device.
-
 ## **Definition of topic and payload**
 
 Often, in the IP distribution network there is a server with the role of **MQTT broker** to which are associated:
