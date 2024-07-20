@@ -46,11 +46,11 @@ We could now insert the temperature and pressure measurement into the more gener
 ```
 If we wanted to select only one device, there are two alternative ways:
 - insert the **mqtt prefix** of the device directly **in the path** ```/soggiorno/misure/mydevice1-98F4ABF298AD/{"envSensor": {....}}```
-- insert an **id** of the device **in the JSON** ```/soggiorno/misure/{"deviceid":"01", "envSensor": {....},"deviceID": "01",}```, where ```01``` indicates a unique address only within the subgroup ```/living room/measurements```.
+- insert an **id** of the device **in the JSON** ```/soggiorno/misure/{"deviceid":"01", "envSensor": {....},"deviceID": "01",}```, where ```01``` indicates a unique address only within the subgroup ```/living_room/measurements```.
 
 ## **Managing command topics**
 
-At this point we could insert the lights command in the more general topic of measures and actuations that we will call ```commands``` and register the living room buttons to the topic ```lights/living room/commands``` as a publisher, while we could register the lamp actuations to the same topic as a subscriber. The command could be the JSON ```{"toggle":"true"}```, so in the end the entire path would become ```lights/living room/commands/{"toggle":"true"}```. If we wanted to select only one device, two alternative ways are possible:
+At this point we could insert the lights command in the more general topic of measures and actuations that we will call ```commands``` and register the living room buttons to the topic ```lights/living room/commands``` as a publisher, while we could register the lamp actuations to the same topic as a subscriber. The command could be the JSON ```{"toggle":"true"}```, so in the end the entire path would become ```lights/living_room/commands/{"toggle":"true"}```. If we wanted to select only one device, two alternative ways are possible:
 - insert the **mqtt prefix** of the device directly **in the path** ```luci/soggiorno/comandi/mydevice1-98F4ABF298AD/{"toggle":"true"}```
 - insert an **id** of the device **in the JSON** ```luci/soggiorno/comandi/{"deviceid":"01", "toggle":"true"}```, where ```01``` indicates a unique address only within the subgroup ```luci/soggiorno```. With this solution, the device must be able to manage a second level of addresses independent of the topic path mechanism.
 
@@ -65,8 +65,8 @@ This channel is used to send the **status** of a device to all those who are int
 - **PUSH synchronization**. The same actuator could take the initiative to **periodically send** its state to all those interested (process servers or all web displays that control it), without anyone sending explicit requests on the command topic. It is a **PUSH alternative** to periodic PULL synchronization.
 
 An example of **state MQTT channel** could be:
-- in case of **unique identification** of the device via **MQTT path**: ```lights/living room/state/mydevice1-98F4ABF298AD/{"state":"on"}```
-- in case of **unique identification** of the device in the **JSON payload**: ```lights/living room/state/{"deviceid":"01", "state":"on"}```
+- in case of **unique identification** of the device via **MQTT path**: ```lights/living_room/state/mydevice1-98F4ABF298AD/{"state":"on"}```
+- in case of **unique identification** of the device in the **JSON payload**: ```lights/living_room/state/{"deviceid":"01", "state":"on"}```
 
 ## **Configuration topic management**
 
