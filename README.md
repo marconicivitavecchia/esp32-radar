@@ -14,6 +14,8 @@ An image of the board that collect all sensors, enviroment and radar sensors, is
 
 <img src="img/espradar.png" alt="alt text" width="1000">
 
+The board is a prototype close to commercialization by the company Alemax of Ladispoli (RM) - Italy.
+
 ## Getting started
 
 Remember to rename `config-example.py` into `config.py` and adjust the values according to your needs.
