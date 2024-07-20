@@ -67,8 +67,8 @@ print('Scan i2c bus...')
 devices = i2c.scan()
 bme = BME680_I2C(i2c=i2c, address=0x76)
 # Create Radar instance
-#radar = Radar(uart)
-
+#radar = Radar(uart) 
+   
 # Partial JSON of the single states that are retrieved in PULL mode from the web interface
 # upon receipt of a status request command
 def pubStateAtt(att, val):
@@ -262,10 +262,10 @@ def leggi_reboot():
 # but they must be stored as field-value pairs of an object because in Python dictionary arrays are encoded as objects.
 # Write-only commands are parameterized and must be invoked in JSON as field, value pairs. For example, with JSON
 # "configs": {
-# 	  "write":{
-# 	     "polltime": 1
-# 		 "servel": 115200
-# 	  },
+# 	"write":{
+# 		"polltime": 1
+# 		"servel": 115200
+# 	},
 # }
 command_map = {
     #"boardID": check_id,
