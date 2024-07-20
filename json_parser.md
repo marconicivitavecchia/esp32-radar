@@ -3,6 +3,10 @@
 
 # **JSON parser**
 
+Is a recursive parser of JSON data received asynchronously (representing the commands from the web interface). Returns the path of the command in the received JSON data structure. 
+
+The path must correspond to the path of the function to be called in the data structure of the command map. Invokes the function which, in the command map, has its pointer on that path.
+
 ## **Definition of topic and payload**
 
 Map of the functions to be executed on a certain path of the received commands (statuses):
