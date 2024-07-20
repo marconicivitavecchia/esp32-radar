@@ -62,3 +62,35 @@ We could now insert the temperature and pressure measurement into the more gener
 If we wanted to select only one device, there are two alternative ways:
 - insert the **mqtt prefix** of the device directly **in the path** ```/soggiorno/misure/mydevice1-98F4ABF298AD/{"envSensor": {....}}```
 - insert an **id** of the device **in the JSON** ```/soggiorno/misure/{"deviceid":"01", "envSensor": {....},"deviceID": "01",}```, where ```01``` indicates a unique address only within the subgroup ```/living room/measurements```.
+
+### **Managing command topics**
+
+At this point we could insert the lights command in the more general topic of measures and actuations that we will call ```commands``` and register the living room buttons to the topic ```lights/living room/commands``` as a publisher, while we could register the lamp actuations to the same topic as a subscriber. The command could be the JSON ```{"toggle":"true"}```, so in the end the entire path would become ```lights/living room/commands/{"toggle":"true"}```. If we wanted to select only one device, two alternative ways are possible:
+- insert the **mqtt prefix** of the device directly **in the path** ```luci/soggiorno/comandi/mydevice1-98F4ABF298AD/{"toggle":"true"}```
+- insert an **id** of the device **in the JSON** ```luci/soggiorno/comandi/{"deviceid":"01", "toggle":"true"}```, where ```01``` indicates a unique address only within the subgroup ```luci/soggiorno```. With this solution, the device must be able to manage a second level of addresses independent of the topic path mechanism.
+
+### **Status topic management**
+
+This channel is used to send the **status** of a device to all those who are interested in it. The interest could arise for several reasons:
+- **Confirmation** of the **implementation**. Upon **receiving** a command (for example "on":"true"), the **actuator** may be required to **notify** (in PUSH mode), to the **display** associated with the transmitting sensor (or **process server**), its **current state**, so that the **user** (or the process server) can verify the actual **effectiveness** of the last actuation command.
+- **PULL** synchronization of the **process server**. The process server may **fetch** on the status topic, via a **request command** sent to the terminal device on the command topic, the **state** of the actuators to update a general command panel or perform statistics or to retrieve the inputs of an algorithm that it must execute.
+- **PULL** synchronization of a **control panel**. A **web control panel** could **fetch** on the status topic, via a **request command** sent to the terminal device on the command topic, the **state** of the actuators:
+    - just once, at the beginning, when the page has been **loaded/reloaded** by the user
+    - **periodically**, to be sure to always have the **most up-to-date state**, even in the event of a network **disconnection** that has prevented the recording of the latest feedback by the actuator.
+- **PUSH synchronization**. The same actuator could take the initiative to **periodically send** its state to all those interested (process servers or all web displays that control it), without anyone sending explicit requests on the command topic. It is a **PUSH alternative** to periodic PULL synchronization.
+
+An example of **state MQTT channel** could be:
+- in case of **unique identification** of the device via **MQTT path**: ```lights/living room/state/mydevice1-98F4ABF298AD/{"state":"on"}```
+- in case of **unique identification** of the device in the **JSON payload**: ```lights/living room/state/{"deviceid":"01", "state":"on"}```
+
+### **Configuration topic management**
+
+This channel is used to send **configuration commands** to the device by the process server. The interest could arise for several reasons:
+- perform an update of the on-board FW via wireless.
+- set some characteristics in the definition of its functions such as, for example, behaving as a gate opener or as a light control.
+- set the frequency of a measurement, or the trigger interval of an alarm, etc.
+- change the syntax of the JSON payload or that of an MQTT path
+
+An example of a **MQTT configuration channel** to, for example, set the automatic status publication period could be:
+- in the case of **unique identification** of the device via **MQTT path**: ```luci/soggiorno/config/mydevice1-98F4ABF298AD/{"stateperiod":"3000"}```
+- in the case of **unique identification** of the device in the **JSON payload**: ```luci/soggiorno/config/{"deviceid":"01", "stateperiod":"3000"}```
