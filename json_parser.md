@@ -89,7 +89,7 @@ but they must be stored as field-value pairs of an object because in Python dict
 
 The map of function pointers tha are corresponding to the configuration and state json is:
 
-```Jscript
+```js
 const commandMap = {
         radar: {
                 fw: (value) => {
