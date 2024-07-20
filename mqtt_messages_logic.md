@@ -1,4 +1,4 @@
-> [Return to main page]()
+> [Return to main page](README.md)
 
 # **MQTT Messages**
 
@@ -79,3 +79,5 @@ This channel is used to send **configuration commands** to the device by the pro
 An example of a **MQTT configuration channel** to, for example, set the automatic status publication period could be:
 - in the case of **unique identification** of the device via **MQTT path**: ```luci/soggiorno/config/mydevice1-98F4ABF298AD/{"stateperiod":"3000"}```
 - in the case of **unique identification** of the device in the **JSON payload**: ```luci/soggiorno/config/{"deviceid":"01", "stateperiod":"3000"}```
+
+> [Return to main page](README.md)
