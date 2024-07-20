@@ -14,4 +14,5 @@ A video of the web page in action is also available [here](https://drive.google.
 
 Remember to rename `config-example.py` into `config.py` and adjust the values according to your needs.
 
-[MQTT message management](mqtt_messages_logic.md)
+- [MQTT message management](mqtt_messages_logic.md)
+- [JSON parser](json_parser.md)
