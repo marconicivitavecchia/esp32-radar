@@ -10,6 +10,10 @@ This project includes a web page for remote monitoring and control. This is a sc
 
 A video of the web page in action is also available [here](https://drive.google.com/file/d/1KjS-0TWMNAd9SawNiWF4eYCHru64Aw-G/view?usp=sharing).
 
+An image of the board that collect all sensors, enviroment and radar sensors, is below:
+
+<img src="img/espradar.png" alt="alt text" width="1000">
+
 ## Getting started
 
 Remember to rename `config-example.py` into `config.py` and adjust the values according to your needs.
