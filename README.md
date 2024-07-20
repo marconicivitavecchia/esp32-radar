@@ -14,6 +14,10 @@ An image of the board that collect all sensors, enviroment and radar sensors, is
 
 <img src="img/espradar.png" alt="alt text" width="1000">
 
+<img src="img/espradar2.png" alt="alt text" width="1000">
+
+<img src="img/espradar3.png" alt="alt text" width="1000">
+
 The board is a prototype close to commercialization by the company Alemax of Ladispoli (RM) - Italy.
 
 ## Getting started
