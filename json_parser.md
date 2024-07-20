@@ -9,7 +9,9 @@ The path must correspond to the path of the function to be called in the data st
 
 ## **Device parser**
 
-It is a parser that works on messages posted by the user on **feedback topic (state)** that are useful to the application server to receive confirmation of the actuator state change but also useful to the user to know the new state.
+It is a parser that works on messages posted by the user
+-  on **feedback topic (state)** that are useful to the application server to receive confirmation of the actuator state change but also useful to the user to know the new state.
+- on a **configuration topic** where only the application server can publish while all other IoT devices are subscribers:
 
 Map of the functions to be executed on a certain path of the received commands (statuses):
 - They must coincide with the corresponding paths of the JSON object being transmitted.
