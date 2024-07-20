@@ -26,8 +26,8 @@ but they must be stored as field-value pairs of an object because in Python dict
 ```
 
 Ultimately, the configuration JSON is interpreted:
-- with functions with parameters that modify the current state of the device.
-- with functions without parameters that read the current state of the device.
+- by invoking functions with parameters that modify the current state of the device.
+- by invoking functions without parameters that read the current state of the device.
 The map corresponding to the configuration and state json is:
 
 ``` Python
