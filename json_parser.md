@@ -10,8 +10,8 @@ The path must correspond to the path of the function to be called in the data st
 ## **Device parser**
 
 The corrisponding JSON commands are sent by the application server or by the web interface and it is a parser that works on messages posted by the user on:
-- a **feedback topic (state)** to indicate to the device the state information that tne application server is intersted to know. 
 - a **configuration topic** where only the application server can publish while all other IoT devices are subscribers.
+- a **feedback topic (state)** to indicate to the device the state information that tne application server is intersted to know. 
   
 Map of the functions to be executed on a certain path of the received commands (statuses):
 - They must coincide with the corresponding paths of the JSON object being transmitted.
