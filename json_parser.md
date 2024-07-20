@@ -7,7 +7,9 @@ Is a recursive parser of JSON data received asynchronously (representing the com
 
 The path must correspond to the path of the function to be called in the data structure of the command map. Invokes the function which, in the command map, has its pointer on that path.
 
-## **Definition of topic and payload**
+## **Device parser**
+
+is a parser that works on messages posted by the user on **feedback topic (state)** that are useful to the application server to receive confirmation of the actuator state change but also useful to the user to know the new state.
 
 Map of the functions to be executed on a certain path of the received commands (statuses):
 - They must coincide with the corresponding paths of the JSON object being transmitted.
@@ -57,5 +59,8 @@ command_map = {
     }
 }
 ```
+## **Application parser**
+
+
 
 > [Return to main page](README.md)
