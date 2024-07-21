@@ -80,6 +80,8 @@ I comandi JSON corrispondenti vengono inviati dal dispositivo IoT ed è un parse
 - un **topic di misura** e invoca la funzione con la responsabilità di mostrare le misure nell'interfaccia utente o di raccoglierle in un database.
 - un **topic di feedback (stato)** (dal dispositivo terminale, al broker), utile all'application server per ricevere conferma del cambio di stato dell'attuatore ma anche utile all'utente per conoscere il nuovo stato.
 
+I **comandi** per **entrambi i topic** sono, in questo caso, generalmente **tutti parametrizzati** e le funzioni associate sono **tutte di scrittura** e chiaramente valorizzate con almeno un **parametro**.
+
 La **mappa delle funzioni** di **scrittura** da eseguire su un determinato percorso dei comandi ricevuti (stati):
 - Devono **coincidere** con i percorsi corrispondenti dell'oggetto JSON trasmesso.
 - I comandi di **scrittura** sono **con parametri** e devono essere rappresentati nel JSON come **coppie chiave-valore** di comandi.
