@@ -3,26 +3,38 @@
 
 # **JSON parser**
 
-Is a recursive parser of JSON data received asynchronously (representing the commands from the web interface). Returns the path of the command in the received JSON data structure. 
+È un parser ricorsivo dei dati JSON ricevuti in modo asincrono mediante un topic MQTT. Esegue nell'ordine:
+1. ricerca di un comando all'interno dell'oggetto JSON ricevuto
+2. Restituzione del percorso del comando corrente all'interno della struttura dati JSON ricevuta. Il percorso restituito deve corrispondere al percorso della funzione da chiamare nella struttura dati della mappa dei comandi.
+3. invocazione della funzione che, nella mappa dei comandi, ha il suo puntatore su quel percorso.
+4. passaggio al comando successivo non ancora interpretato.
 
-The path must correspond to the path of the function to be called in the data structure of the command map. Invokes the function which, in the command map, has its pointer on that path.
+Se un comando non viene trovato nella mappa dei comandi viene segnalato un errore e si passa al parsing del comando successivo
 
 ## **Device parser**
 
-The corrisponding JSON commands are sent by the application server or by the web interface and it is a parser that works on messages posted by the user on:
-- a **feedback topic (state)** to indicate to the device the state information that tne application server is intersted to know. 
-- a **configuration topic** where only the application server can publish while all other IoT devices are subscribers.
+I **comandi JSON** corrispondenti vengono inviati dal **server applicativo** o dall'**interfaccia web** ed è un parser che lavora sui messaggi **pubblicati dall'applicazione** su:
+- un **topic di feedback (stato)** per indicare al dispositivo le informazioni sullo **stato** che il server applicativo o l'utente sono interessati a conoscere.
+- un **topic di configurazione** in cui solo il server applicativo è un publisher mentre tutti gli altri dispositivi IoT sono subscriber. Serve ad **impostare da remoto** i parametri di funzionamento del dispositivo.
   
-Map of the functions to be executed on a certain path of the received commands (statuses):
-- They must coincide with the corresponding paths of the JSON object being transmitted.
-- Read-only commands are parameterless and can be invoked in JSON as cells in a command list. For example, with JSON
+**Mappa delle funzioni** di **lettura** da eseguire su un determinato percorso dei comandi ricevuti (stati):
+- Devono **coincidere** con i percorsi corrispondenti dell'oggetto JSON trasmesso.
+- I comandi di **sola lettura** sono **senza parametri** e possono essere rappresentati nel JSON come **celle in un elenco** di comandi.
+
+Ad esempio, il JSON che rappresenta i **comandi di lettura** del polling delle misure e della velocità della porta seriale si possono codificare nel JSON:
+
 ```Json
 "configs": {
         "read": ["polltime", "servel"]
 }
 ```
-but they must be stored as field-value pairs of an object because in Python dictionary arrays are encoded as objects.
-- Write-only commands are parameterized and must be invoked in JSON as field, value pairs. For example, with JSON:
+
+
+**Mappa delle funzioni** di **scrittura** da eseguire su un determinato percorso dei comandi ricevuti (stati):
+- Devono **coincidere** con i percorsi corrispondenti dell'oggetto JSON trasmesso.
+- I comandi di **scrittura** sono **con parametri** e devono essere rappresentati nel JSON come **coppie chiave-valore** di comandi.
+
+Ad esempio, il JSON che rappresenta i comandi di **scrittura** del polling delle misure e della velocità della porta seriale si possono codificare nel JSON:
 
 ```Json
 "configs": {
@@ -34,12 +46,10 @@ but they must be stored as field-value pairs of an object because in Python dict
 ```
 
 In definitiva, i JSON di configurazione vengono interpretati:
-- con l'invocazione di funzioni dotate di parametri che modificano lo stato corrente del dispositivo.
-- con con funzioni prive di parametri che leggono lo stato corrente del dispositivo.
+- con l'invocazione di funzioni **dotate di parametri** che **modificano lo stato** corrente del dispositivo.
+- con con funzioni **prive di parametri** che leggono lo stato corrente del dispositivo.
 
-La mappa corrispondente ai json di configurazione e stato è:
-  
-The map of function pointers tha are corresponding to the configuration and state json is:
+Per quanto riguarda la codifica dei comandi nella mappa dei comandi bisogna tenere presente che le liste di puntatori a funzioni con chiave stringa (il nome del comando associato) costituiscono degli array associativi che in Python vengono comunque rappresentati come oggetti che contengono liste di coppie campo-valore, motivo per cui la rappresentazione di tutti i comandi, che siano para,metrizzati o meno, è sostanzialmente uniforme, cioè si realizza allo stesso modo per entrambe le tipologie. La mappa corrispondente ai json di configurazione e stato è:
 
 ``` Python
 command_map = {
