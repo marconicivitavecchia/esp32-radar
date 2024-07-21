@@ -144,4 +144,7 @@ const commandMap = {
 };		
 ```
 
+Sitografia:
+- chatGPT per parser con mappa di funzioni.
+
 > [Ritorna alla pagina principale](README.md)
