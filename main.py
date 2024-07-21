@@ -67,8 +67,8 @@ print('Scan i2c bus...')
 devices = i2c.scan()
 bme = BME680_I2C(i2c=i2c, address=0x76)
 # Create Radar instance
-#radar = Radar(uart) 
-   
+#radar = Radar(uart)
+
 # Partial JSON of the single states that are retrieved in PULL mode from the web interface
 # upon receipt of a status request command
 def pubStateAtt(att, val):
@@ -280,9 +280,9 @@ command_map = {
         "read": {# commands whose reception causes the sending of a system status
             "radarfw": leggi_radarfw,
             "servel": leggi_servel,
-            "pollTime": leggi_pollTime,
-            "radarMode": leggi_radarMode,
-            "allState": pubAllState,
+            "polltime": leggi_pollTime,
+            "radarmode": leggi_radarMode,
+            "allstate": pubAllState,
             "radarstate": leggi_radarState,
         }
     }
