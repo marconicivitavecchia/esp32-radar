@@ -62,14 +62,14 @@ An example of **state MQTT channel** could be:
 
 ## **Configuration topic management**
 
-This channel is used to send **configuration commands** to the device by the process server. The interest could arise for several reasons:
-- perform an update of the on-board FW via wireless.
-- set some characteristics in the definition of its functions such as, for example, behaving as a gate opener or as a light control.
-- set the frequency of a measurement, or the trigger interval of an alarm, etc.
-- change the syntax of the JSON payload or that of an MQTT path
+Questo canale viene utilizzato per inviare **comandi di configurazione** al dispositivo da parte del server di processo. L'interesse potrebbe nascere per più motivi:
+- effettuare un aggiornamento del FW di bordo via wireless.
+- impostare qualche caratteristica nella definizione delle sue funzioni come, ad esempio, comportarsi come un apricancello o come comando per luci.
+- impostare la frequenza di una misura, o l'intervallo di scatto di un allarme, ecc.
+- cambiare la sintassi dei JSON di payload o quella di un path MQTT
 
-An example of a **MQTT configuration channel** to, for example, set the automatic status publication period could be:
-- in the case of **unique identification** of the device via **MQTT path**: ```luci/soggiorno/config/mydevice1-98F4ABF298AD/{"stateperiod":"3000"}```
-- in the case of **unique identification** of the device in the **JSON payload**: ```luci/soggiorno/config/{"deviceid":"01", "stateperiod":"3000"}```
+Un esempio di **canale MQTT di configurazione** per, ad esempio, impostare il periodo di pubblicazione automatica dello stato potrebbe essere: 
+- nel caso di **identificazione univoca** del dispositivo via  **path MQTT**: ```luci/soggiorno/config/mydevice1-98F4ABF298AD/{"stateperiod":"3000"}```
+- nel caso di **identificazione univoca** del dispositivo nel **payload JSON**: ```luci/soggiorno/config/{"deviceid":"01", "stateperiod":"3000"}```
 
 > [Return to main page](README.md)
