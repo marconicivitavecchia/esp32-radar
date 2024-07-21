@@ -66,9 +66,9 @@ command_map = {
         "read": {# commands whose reception causes the sending of a system status
             "radarfw": leggi_radarfw,
             "servel": leggi_servel,
-            "pollTime": leggi_pollTime,
-            "radarMode": leggi_radarMode,
-            "allState": pubAllState,
+            "polltime": leggi_pollTime,
+            "radarmode": leggi_radarMode,
+            "allstate": pubAllState,
             "radarstate": leggi_radarState,
         }
     }
