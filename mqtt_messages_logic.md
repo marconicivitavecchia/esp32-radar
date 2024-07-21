@@ -59,7 +59,7 @@ Un esempio di **canale MQTT di stato** potrebbe essere:
 - nel caso di **identificazione univoca** del dispositivo via  **path MQTT**: ```luci/soggiorno/stato/mydevice1-98F4ABF298AD/{"state":"on"}```
 - nel caso di **identificazione univoca** del dispositivo nel **payload JSON**: ```luci/soggiorno/stato/{"deviceid":"01", "state":"on"}```
 
-## **Configuration topic management**
+## **Gestione del topic di configurazione**
 
 Questo canale viene utilizzato per inviare **comandi di configurazione** al dispositivo da parte del server di processo. L'interesse potrebbe nascere per più motivi:
 - effettuare un aggiornamento del FW di bordo via wireless.
