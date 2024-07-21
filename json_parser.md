@@ -9,9 +9,9 @@ The path must correspond to the path of the function to be called in the data st
 
 ## **Device parser**
 
-The corrisponding JSON commands are sent by the application server or by the web interface and the Device Parser is one that works on messages posted by the user on:
-- a **configuration topic** where only the application server can publish while all other IoT devices are subscribers.
+The corrisponding JSON commands are sent by the application server or by the web interface and it is a parser that works on messages posted by the user on:
 - a **feedback topic (state)** to indicate to the device the state information that tne application server is intersted to know. 
+- a **configuration topic** where only the application server can publish while all other IoT devices are subscribers.
   
 Map of the functions to be executed on a certain path of the received commands (statuses):
 - They must coincide with the corresponding paths of the JSON object being transmitted.
@@ -33,9 +33,11 @@ but they must be stored as field-value pairs of an object because in Python dict
  }
 ```
 
-Ultimately, the configuration JSON is interpreted:
-- by invoking functions with parameters that modify the current state of the device.
-- by invoking functions without parameters that read the current state of the device.
+In definitiva, i JSON di configurazione vengono interpretati:
+- con l'invocazione di funzioni dotate di parametri che modificano lo stato corrente del dispositivo.
+- con con funzioni prive di parametri che leggono lo stato corrente del dispositivo.
+
+La mappa corrispondente ai json di configurazione e stato è:
   
 The map of function pointers tha are corresponding to the configuration and state json is:
 
@@ -63,7 +65,7 @@ command_map = {
 ```
 ## **Application parser**
 
-The corrisponding JSON commands are sent by the IoT device and the Application Parser is one that works on messages posted by the IoT device on
+The corrisponding JSON commands are sent by theIoT device and it is a parser that works on messages posted by the IoT device on
 - a **measurement topic** and invokes the function with the responsability of show the measures in the user interface or to collects them into a database. 
 - a **feedback topic (state)** (from the terminal device, to the broker), useful to the application server to receive confirmation of the actuator state change but also useful to the user to know the new state.
 
