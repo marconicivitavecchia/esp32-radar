@@ -300,8 +300,6 @@ else:
     time.sleep(1)
     
 
-radarFW = readFW()
-
 i = 0
 ok = False
 temp = bme.temperature
@@ -384,6 +382,8 @@ if not connect_and_subscribe(client1, MQTT_CMDTOPIC):
     client = client2
 
 time.sleep(0.5)
+#radarFW = readFW()
+
 while True:
     try:
         if S_ON.value():
