@@ -9,7 +9,7 @@
 3. invocazione della funzione che, nella mappa dei comandi, ha il suo puntatore su quel percorso.
 4. passaggio al comando successivo non ancora interpretato.
 
-Se un comando non viene trovato nella mappa dei comandi viene segnalato un errore e si passa al parsing del comando successivo
+Se un comando non viene trovato nella mappa dei comandi, viene segnalato un errore e si passa al parsing del comando successivo
 
 ## **Device parser**
 
