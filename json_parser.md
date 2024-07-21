@@ -14,8 +14,8 @@ Se un comando non viene trovato nella mappa dei comandi viene segnalato un error
 ## **Device parser**
 
 I **comandi JSON** corrispondenti vengono inviati dal **server applicativo** o dall'**interfaccia web** ed è un parser che lavora sui messaggi **pubblicati dall'applicazione** su:
-- un **topic di feedback (stato)** per indicare al dispositivo le informazioni sullo **stato** che il server applicativo o l'utente sono interessati a conoscere.
 - un **topic di configurazione** in cui solo il server applicativo è un publisher mentre tutti gli altri dispositivi IoT sono subscriber. Serve ad **impostare da remoto** i parametri di funzionamento del dispositivo.
+- un **topic di feedback (stato)** per indicare al dispositivo le informazioni sullo **stato** che il server applicativo o l'utente sono interessati a conoscere.
   
 **Mappa delle funzioni** di **lettura** da eseguire su un determinato percorso dei comandi ricevuti (stati):
 - Devono **coincidere** con i percorsi corrispondenti dell'oggetto JSON trasmesso.
