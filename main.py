@@ -89,7 +89,7 @@ def pubAllState():
      timestamp = getTimestamp()
      polltimeval = pollTime
      radarmodeval = readRadarMode()
-     fwval = radarFW
+     fwval = readFW()
      rstate = "on" if S_ON.value() else "off"
      
      # Complete JSON of all states of the system that are retrieved in PULL mode from the web interface
@@ -231,7 +231,6 @@ def leggi_radarfw():
     global radarFW
     print("Leggi radarfw")
     val = readFW()
-    radarFW = val
     pubStateAtt("fw", val)
 
 def leggi_servel():
