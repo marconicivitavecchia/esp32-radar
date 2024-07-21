@@ -1,4 +1,4 @@
-> [Return to main page](README.md)
+> [Ritorna alla pagina principale](README.md)
 
 # **MQTT Messages**
 
@@ -71,4 +71,5 @@ Un esempio di **canale MQTT di configurazione** per, ad esempio, impostare il pe
 - nel caso di **identificazione univoca** del dispositivo via  **path MQTT**: ```luci/soggiorno/config/mydevice1-98F4ABF298AD/{"stateperiod":"3000"}```
 - nel caso di **identificazione univoca** del dispositivo nel **payload JSON**: ```luci/soggiorno/config/{"deviceid":"01", "stateperiod":"3000"}```
 
-> [Return to main page](README.md)
+> [Ritorna alla pagina principale](README.md)
+
