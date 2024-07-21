@@ -49,7 +49,9 @@ In definitiva, i JSON di configurazione vengono interpretati:
 - con l'invocazione di funzioni **dotate di parametri** che **modificano lo stato** corrente del dispositivo.
 - con con funzioni **prive di parametri** che leggono lo stato corrente del dispositivo.
 
-Per quanto riguarda la codifica dei comandi nella mappa dei comandi bisogna tenere presente che le liste di puntatori a funzioni con chiave stringa (il nome del comando associato) costituiscono degli array associativi che in Python vengono comunque rappresentati come oggetti che contengono liste di coppie campo-valore, motivo per cui la rappresentazione di tutti i comandi, che siano para,metrizzati o meno, è sostanzialmente uniforme, cioè si realizza allo stesso modo per entrambe le tipologie. La mappa corrispondente ai json di configurazione e stato è:
+Per quanto riguarda la codifica dei comandi nella mappa dei comandi bisogna tenere presente che le liste di puntatori a funzioni con chiave stringa (il nome del comando associato) costituiscono degli array associativi. GLi array associativi in Python vengono comunque rappresentati come oggetti che contengono liste di coppie campo-valore. 
+
+Per questo motivo, la rappresentazione di tutti i comandi, che siano parametrizzati o meno, è sostanzialmente uniforme, cioè si realizza allo stesso modo per entrambe le tipologie. La mappa corrispondente ai json di configurazione e stato è:
 
 ``` Python
 command_map = {
@@ -75,12 +77,13 @@ command_map = {
 ```
 ## **Application parser**
 
-The corrisponding JSON commands are sent by theIoT device and it is a parser that works on messages posted by the IoT device on
-- a **measurement topic** and invokes the function with the responsability of show the measures in the user interface or to collects them into a database. 
-- a **feedback topic (state)** (from the terminal device, to the broker), useful to the application server to receive confirmation of the actuator state change but also useful to the user to know the new state.
+I comandi JSON corrispondenti vengono inviati dal dispositivo IoT ed è un parser che lavora sui messaggi inviati dal dispositivo IoT su
+- un **topic di misura** e invoca la funzione con la responsabilità di mostrare le misure nell'interfaccia utente o di raccoglierle in un database.
+- un **topic di feedback (stato)** (dal dispositivo terminale, al broker), utile all'application server per ricevere conferma del cambio di stato dell'attuatore ma anche utile all'utente per conoscere il nuovo stato.
 
-Map of the functions to be executed on a certain path of the received commands (statuses):
-- They must coincide with the corresponding paths of the JSON object being transmitted.
+La **mappa delle funzioni** di **scrittura** da eseguire su un determinato percorso dei comandi ricevuti (stati):
+- Devono **coincidere** con i percorsi corrispondenti dell'oggetto JSON trasmesso.
+- I comandi di **scrittura** sono **con parametri** e devono essere rappresentati nel JSON come **coppie chiave-valore** di comandi.
 
 ```Json
 {
@@ -96,10 +99,7 @@ Map of the functions to be executed on a certain path of the received commands (
     "timestamp": "20/07/2024 18:10:34",
 }
 ```
-but they must be stored as field-value pairs of an object because in Python dictionary arrays are encoded as objects.
-- Write-only commands are parameterized and must be invoked in JSON as field, value pairs. For example, with JSON:
-
-The map of function pointers tha are corresponding to the configuration and state json is:
+Per questo motivo, la rappresentazione di tutti i comandi, che siano parametrizzati o meno, è sostanzialmente uniforme, cioè si realizza allo stesso modo per entrambe le tipologie. La mappa corrispondente ai json di configurazione e stato è:
 
 ```js
 const commandMap = {
