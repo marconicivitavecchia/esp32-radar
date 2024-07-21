@@ -23,5 +23,5 @@ The board is a prototype close to commercialization by the company Alemax of Lad
 
 Remember to rename `config-example.py` into `config.py` and adjust the values according to your needs.
 
-- [MQTT message management](mqtt_messages_logic.md)
-- [JSON parser](json_parser.md)
+- [Gestione dei messaggi MQTT](mqtt_messages_logic.md)
+- [Parser JSON](json_parser.md)
