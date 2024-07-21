@@ -1,5 +1,5 @@
 
-> [Return to main page](README.md)
+> [Ritorna alla pagina principale](README.md)
 
 # **JSON parser**
 
@@ -28,7 +28,6 @@ Ad esempio, il JSON che rappresenta i **comandi di lettura** del polling delle m
         "read": ["polltime", "servel"]
 }
 ```
-
 
 **Mappa delle funzioni** di **scrittura** da eseguire su un determinato percorso dei comandi ricevuti (stati):
 - Devono **coincidere** con i percorsi corrispondenti dell'oggetto JSON trasmesso.
@@ -145,4 +144,4 @@ const commandMap = {
 };		
 ```
 
-> [Return to main page](README.md)
+> [Ritorna alla pagina principale](README.md)
