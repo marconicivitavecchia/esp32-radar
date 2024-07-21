@@ -48,7 +48,7 @@ In definitiva, i JSON di configurazione vengono interpretati:
 - con l'invocazione di funzioni **dotate di parametri** che **modificano lo stato** corrente del dispositivo.
 - con con funzioni **prive di parametri** che leggono lo stato corrente del dispositivo.
 
-Per quanto riguarda la codifica dei comandi nella mappa dei comandi bisogna tenere presente che le liste di puntatori a funzioni con chiave stringa (il nome del comando associato) costituiscono degli array associativi. GLi array associativi in Python vengono comunque rappresentati come oggetti che contengono liste di coppie campo-valore. 
+Per quanto riguarda la codifica dei comandi nella mappa dei comandi bisogna tenere presente che le liste di puntatori a funzioni con chiave stringa (il nome del comando associato) costituiscono degli array associativi. Gli array associativi in Python vengono comunque rappresentati come oggetti che contengono liste di coppie campo-valore. 
 
 Per questo motivo, la rappresentazione di tutti i comandi, che siano parametrizzati o meno, è sostanzialmente uniforme, cioè si realizza allo stesso modo per entrambe le tipologie. La mappa corrispondente ai json di configurazione e stato è:
 
@@ -98,7 +98,7 @@ La **mappa delle funzioni** di **scrittura** da eseguire su un determinato perco
     "timestamp": "20/07/2024 18:10:34",
 }
 ```
-Per questo motivo, la rappresentazione di tutti i comandi, che siano parametrizzati o meno, è sostanzialmente uniforme, cioè si realizza allo stesso modo per entrambe le tipologie. La mappa corrispondente ai json di configurazione e stato è:
+La rappresentazione di tutti i comandi, che siano parametrizzati o meno, è sostanzialmente uniforme, cioè si realizza allo stesso modo per entrambe le tipologie. La mappa corrispondente ai json di configurazione e stato è:
 
 ```js
 const commandMap = {
