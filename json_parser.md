@@ -50,7 +50,7 @@ In definitiva, i JSON di configurazione vengono interpretati:
 
 Per quanto riguarda la codifica dei comandi nella mappa dei comandi bisogna tenere presente che le liste di puntatori a funzioni con chiave stringa (il nome del comando associato) costituiscono degli array associativi. Gli array associativi in Python vengono comunque rappresentati come oggetti che contengono liste di coppie campo-valore. 
 
-Per questo motivo, la rappresentazione di tutti i comandi, che siano parametrizzati o meno, è sostanzialmente uniforme, cioè si realizza allo stesso modo per entrambe le tipologie di funzioni. La mappa corrispondente ai json di configurazione e stato è:
+Per questo motivo, la rappresentazione di tutti i comandi, che siano parametrizzati o meno, è sostanzialmente uniforme, cioè si realizza allo stesso modo per entrambe le tipologie di funzioni. La mappa corrispondente ai json di **configurazione** e **stato** è:
 
 ``` Python
 command_map = {
@@ -102,7 +102,7 @@ La **mappa delle funzioni** di **scrittura** da eseguire su un determinato perco
 ```
 Gli array associativi in JS vengono comunque rappresentati come oggetti che contengono liste di coppie campo-valore.
 
-Per cui, la rappresentazione di tutti i comandi, che siano parametrizzati o meno, è sostanzialmente uniforme, cioè si realizza allo stesso modo per entrambe le tipologie di funzioni. La mappa corrispondente ai json di configurazione e stato è:
+Per cui, la rappresentazione di tutti i comandi, che siano parametrizzati o meno, è sostanzialmente uniforme, cioè si realizza allo stesso modo per entrambe le tipologie di funzioni. La mappa corrispondente ai json di **misura** e **stato** è:
 
 ```js
 const commandMap = {
