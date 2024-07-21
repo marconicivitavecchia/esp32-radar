@@ -1,6 +1,6 @@
 > [Ritorna alla pagina principale](README.md)
 
-# **MQTT Messages**
+# **Messaggi MQTT**
 
 ## **Definizione di topic e payload**
 
