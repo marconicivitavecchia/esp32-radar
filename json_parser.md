@@ -4,10 +4,10 @@
 # **JSON parser**
 
 È un **parser ricorsivo** dei dati JSON che vengono normalmente ricevuti in **modo asincrono** mediante un topic MQTT. Esegue nell'ordine:
-1. ricerca di un **comando** all'interno dell'oggetto JSON ricevuto
+1. Ricerca di un **comando** all'interno dell'oggetto JSON ricevuto
 2. Restituzione del **percorso** del comando corrente all'interno della struttura dati JSON ricevuta. Il percorso restituito deve corrispondere al percorso della funzione da chiamare nella struttura dati della mappa dei comandi.
-3. **invocazione** della funzione che, nella **mappa dei comandi**, ha il suo puntatore su quel percorso.
-4. passaggio al **comando successivo** non ancora interpretato.
+3. **Invocazione** della funzione che, nella **mappa dei comandi**, ha il suo puntatore su quel percorso.
+4. Passaggio al **comando successivo** non ancora interpretato.
 
 Se un comando non viene trovato nella mappa dei comandi, viene segnalato un errore e si passa al parsing del comando successivo
 
