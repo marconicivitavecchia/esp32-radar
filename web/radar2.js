@@ -423,7 +423,7 @@ function createBoardSection(boardID) {
 	var footer = tmpl2.content.cloneNode(true);
 	gridContainer.appendChild(footer);
 	
-	pubReadAtt(boardID, "allState");
+	pubReadAtt(boardID, "allstate");
 }
 
 // Bind command listeners to input elements 

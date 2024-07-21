@@ -109,7 +109,7 @@ function connectToBroker() {
 		   // Subscribe to topics, publish messages, etc.
 		   client.subscribe(pushtopic);
 		   client.subscribe(statetopic);
-		   pubReadAtt(boardId, "allState");
+		   pubReadAtt(boardId, "allstate");
 		});
 
 		client.on('offline', (err) => {
