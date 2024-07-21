@@ -418,7 +418,8 @@ while True:
                         client = client1
                         print("Riconnessione su broker 1 avvenuta con successo")
                             
-            if t2.update() > pollTime:
+            if t2.update() >= pollTime:
+                #print('Time: ',t2.peek())
                 t2.reset()
                 print('Acceso',S_ON.value())
                 
