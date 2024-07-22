@@ -75,7 +75,7 @@ def pubStateAtt(att, val):
      timestamp = getTimestamp()
      message = ujson.dumps(
         {
-            "radar": {
+            "config": {
                 att: val,
             },
             "boardID": esp32_unique_id,
@@ -96,7 +96,7 @@ def pubAllState():
      # upon receipt of a status request command
      message = ujson.dumps(
         {
-            "radar": {
+            "config": {
                 "fw": fwval,
                 "servel": radarvel,
                 "polltime": polltimeval,
@@ -268,7 +268,7 @@ def leggi_reboot():
 # }
 command_map = {
     #"boardID": check_id,
-    "configs": {
+    "config": {
         "write": {# commands whose reception causes a configuration action on the system
             "polltime": scrivi_pollTime,
             "servel": scrivi_servel,
@@ -457,26 +457,28 @@ while True:
                 # Json of the measurements sent in push mode to the MQTT broker
                 message = ujson.dumps(
                     {
-                        "tempSensor": {
-                            "temp": temp,
-                            "press": press,
-                            "hum": hum,
-                            "gas": gas,
-                        },
-                        "luxSensor": {
-                            "visible": visible,
-                            "infrared": infrared,
-                            "total": total,
-                        },
-                        "radar": {
-                            "x": round_2(lista_x),
-                            "y": round_2(lista_y),
-                            "vel": round_2(lista_v),
-                            "distres": round_2(lista_dr),
+                        "measures":{
+                            "tempSensor": {
+                                "temp": temp,
+                                "press": press,
+                                "hum": hum,
+                                "gas": gas,
+                            },
+                            "luxSensor": {
+                                "visible": visible,
+                                "infrared": infrared,
+                                "total": total,
+                            },
+                            "radar": {
+                                "x": round_2(lista_x),
+                                "y": round_2(lista_y),
+                                "vel": round_2(lista_v),
+                                "distres": round_2(lista_dr),
+                            },
                         },
                         "boardID": esp32_unique_id,
                         "timestamp": timestamp,
-                    }
+                    }   
                 )
                
                 print(f"Reporting to MQTT topic {MQTT_PUSHTOPIC}: {message}")
