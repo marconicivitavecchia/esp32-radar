@@ -130,7 +130,7 @@ Ad esempio, il JSON seguente è inviato dal **dispositivo IoT** sul **topic di m
 }
 ```
 
-Quest'ultimo messaggio tuttavia non viene gestito dal parser JSON della pagina perchè, nella attuale implementazione, ha la particolarità di essere **periodico** e **atomico a livello di oggetto**, cioè **tutti i campi** sono sempe presenti e non è necessaria una loro **interpretazione parziale**. Più semplicemente, viene effettuata la trasformazione da stringa JSON a oggetto JS dell'intero messaggio per il quale viene poi invocata un'**unica funzione** che gestisce **tutti i campi**.
+Quest'ultimo messaggio tuttavia non viene gestito dal **parser JSON ricorsivo** della pagina perchè, nella attuale implementazione, ha la particolarità di essere **periodico** e **atomico a livello di oggetto**, cioè **tutti i campi** sono sempe presenti e non è necessaria una loro **interpretazione parziale**. Più semplicemente, viene effettuata la **trasformazione** da stringa JSON a oggetto JS dell'intero messaggio per il quale viene poi invocata un'**unica funzione** che gestisce **tutti i campi**.
 
 Gli array associativi in JS vengono comunque rappresentati come oggetti che contengono liste di coppie campo-valore.
 
