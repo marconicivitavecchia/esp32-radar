@@ -11,7 +11,7 @@
 
 Se un comando non viene trovato nella mappa dei comandi, viene segnalato un errore e si passa al parsing del comando successivo.
 
-Il parser permette la lettura di **elenchi parziali** di comandi, nel senso che non devono essere necessariamente tutti presenti nello stesso ogetto JSON. I **comandi** sono **entità atomiche** interpretate **singolarmente** in **maniera asincrona** (non periodica) al momento dell'arrivo del messaggio e viene invocata una funzione per ogni singolo comando interpretato.
+Il parser permette la lettura di **elenchi parziali** di comandi, nel senso che non devono essere necessariamente tutti presenti nello stesso ogetto JSON. I **comandi** sono **entità atomiche** interpretate **singolarmente** in **maniera asincrona** (non periodica) al momento dell'arrivo del messaggio e viene invocata **una funzione** per **ogni singolo comando** interpretato.
 
 ## **Device parser**
 
