@@ -91,16 +91,16 @@ Ad esempio, il JSON seguente è inviato dal **dispositivo IoT** sul **topic di f
 
 ```Json
 {
-"radar": {
+  "config": {
         "fw": "V256.516.588257557",
         "servel": 256000,
         "polltime": 1,
         "radarmode": "multi",
         "radarstate": "on",
         "radareboot": "1",
-    },
-    "boardID": "04",
-    "timestamp": "20/07/2024 18:10:34",
+  },
+  "boardID": "04",
+  "timestamp": "20/07/2024 18:10:34",
 }
 ```
 
