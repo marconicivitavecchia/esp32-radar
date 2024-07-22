@@ -9,7 +9,9 @@
 3. **Invocazione** della funzione che, nella **mappa dei comandi**, ha il suo puntatore su quel percorso.
 4. Passaggio al **comando successivo** non ancora interpretato.
 
-Se un comando non viene trovato nella mappa dei comandi, viene segnalato un errore e si passa al parsing del comando successivo
+Se un comando non viene trovato nella mappa dei comandi, viene segnalato un errore e si passa al parsing del comando successivo.
+
+Il parser permette la lettura di elenchi parziali di comandi, nel senso che non devono essere necessariamente tutti presenti nello stesso ogetto JSON. I **comandi** sono **entità atomiche** interpretata **singolarmente** in **maniera asincrona** (non periodica) al momento dell'arrivo del messaggio.
 
 ## **Device parser**
 
@@ -86,6 +88,8 @@ La **mappa delle funzioni** di **scrittura** da eseguire su un determinato perco
 - Devono **coincidere** con i percorsi corrispondenti dell'oggetto JSON trasmesso.
 - I comandi di **scrittura** sono **con parametri** e devono essere rappresentati nel JSON come **coppie chiave-valore** di comandi.
 
+Ad esempio, il JSON seguente è inviato dal **dispositivo IoT** sul **topic di feedback** (stato) e rappresenta i **comandi di scrittura** delle impostazioni complessive del sistema (stato corrente) sulla dashboard della pagina web si possono codificare nel JSON:
+
 ```Json
 {
 "radar": {
@@ -100,6 +104,35 @@ La **mappa delle funzioni** di **scrittura** da eseguire su un determinato perco
     "timestamp": "20/07/2024 18:10:34",
 }
 ```
+
+Ad esempio, il JSON seguente è inviato dal **dispositivo IoT** sul **topic di misura** e rappresenta rappresenta i **comandi di scrittura** delle misure di radar e sensori di ambiente sulla dashboard della pagina web si possono codificare nel JSON:
+
+```Json
+{
+    "tempSensor": {
+        "temp": 26.58,
+        "press": 10006,
+        "hum": 15,87,
+        "gas": 125356,
+    },
+    "luxSensor": {
+        "visible": 2.67,
+        "infrared": 0,
+        "total": 2.67,
+    },
+    "radar": {
+        "x": 16.78,
+        "y": 4.34,
+        "vel": 2.12,
+        "distres": 360,
+    },
+    "boardID": "04-12345678",
+    "timestamp": "20/07/2024 18:10:34",
+}
+```
+
+Quest'ultimo messaggio tuttavia non viene gestito dal parser JSON della pagina perchè, nella attuale implementazione, ha la particolarità di essere **periodico** e **atomico a livello di oggetto**, cioè **tutti i campi** sono sempe presenti e non è necessaria una loro **interpretazione parziale**.
+
 Gli array associativi in JS vengono comunque rappresentati come oggetti che contengono liste di coppie campo-valore.
 
 Per cui, la rappresentazione di tutti i comandi, che siano parametrizzati o meno, è sostanzialmente uniforme, cioè si realizza allo stesso modo per entrambe le tipologie di funzioni. La **mappa** corrispondente ai json di **misura** e **stato** è:
