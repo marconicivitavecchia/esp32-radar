@@ -23,7 +23,7 @@ E' un **parser** che lavora sui messaggi **pubblicati** dall'**interfaccia web**
 - Devono **coincidere** con i percorsi corrispondenti dell'oggetto JSON trasmesso.
 - I comandi di **sola lettura** sono **senza parametri** e possono essere rappresentati nel JSON come **celle in un elenco** di comandi.
 
-Ad esempio, il JSON che rappresenta i **comandi di lettura** delle impostazioni per il polling delle misure e per la velocità della porta seriale si possono codificare nel JSON:
+Ad esempio, il JSON seguente è inviato dalla **applicazione web** sul **topic di configurazione** e rappresenta i **comandi di lettura** delle impostazioni per il polling delle misure e per la velocità della porta seriale si possono codificare nel JSON:
 
 ```Json
 "configs": {
@@ -35,7 +35,7 @@ Ad esempio, il JSON che rappresenta i **comandi di lettura** delle impostazioni 
 - Devono **coincidere** con i percorsi corrispondenti dell'oggetto JSON trasmesso.
 - I comandi di **scrittura** sono **con parametri** e devono essere rappresentati nel JSON come **coppie chiave-valore** di comandi.
 
-Ad esempio, il JSON che rappresenta i comandi di **scrittura** delle impostazioni per il polling delle misure e per la velocità della porta seriale si possono codificare nel JSON:
+Ad esempio, il JSON seguente è inviato dalla **applicazione web** sul **topic di configurazione** i comandi di **scrittura** delle impostazioni per il polling delle misure e per la velocità della porta seriale si possono codificare nel JSON:
 
 ```Json
 "configs": {
