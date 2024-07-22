@@ -42,7 +42,7 @@ var fw = "";
 // 	},
 // }
 const commandMap = {
-			radar: {
+			config: {
 				fw: (value) => {
 						console.log('Setting fw to', value);
 						fw = value;
@@ -138,32 +138,38 @@ function connectToBroker() {
 				console.log('Pushtopic:', pushtopic);
 				console.log('Statetopic:', statetopic);
 				
-				if( topic === pushtopic){		   
+				if( topic === pushtopic){	   
 					// Update the data structure for this boardId. 
 					// Radar measurements are read periodically by the canvas draw() function 
 					// The sensor data are immediately printed on the output boxes by the updateBoardUI() function.
-					boardData = {
-						radarData: {
-							x: roundArrTo(data.radar.x, 2, 1000),
-							y: roundArrTo(data.radar.y, 2, 1000),
-							vel: roundArrTo(data.radar.vel, 2),
-							distres: roundArrTo(data.radar.distres, 2),
+					val = data.measures.radar
+					if ('null' != val){
+						boardData.radarData = {
+							x: roundArrTo(getFieldIfExists(val,'x'), 2, 1000),
+							y: roundArrTo(getFieldIfExists(val,'y'), 2, 1000),
+							vel: roundArrTo(getFieldIfExists(val,'vel'), 2),
+							distres: roundArrTo(getFieldIfExists(val,'distres'), 2),
 							rot: boardData.radarData.rot
-						},
-						tempData: {
-							temp: roundTo(data.tempSensor.temp, 2),
-							press: data.tempSensor.press,
-							hum: roundTo(data.tempSensor.hum, 2),
-							gas: data.tempSensor.gas
-						},
-						luxData: {
-							visible: roundTo(data.luxSensor.visible, 4),
-							infrared: roundTo(data.luxSensor.infrared, 4),
-							total: roundTo(data.luxSensor.total, 4)
-						},
-						timestamp: data.timestamp
-					};
-
+						};
+					}
+					val = data.measures.tempSensor
+					if ('null' != val){
+						boardData.tempData = {
+							temp: roundTo(getFieldIfExists(val,'temp'), 2),
+							press: roundTo(getFieldIfExists(val,'press'), 1),
+							hum: roundTo(getFieldIfExists(val,'hum'), 2),
+							gas: roundTo(getFieldIfExists(val,'gas'), 1),
+						};
+					}
+					val = data.measures.luxSensor
+					if ('null' != val){
+						boardData.luxData = {
+							visible: roundTo(getFieldIfExists(val,'visible'), 4),
+							infrared: roundTo(getFieldIfExists(val,'infrared'), 4),
+							total: roundTo(getFieldIfExists(val,'total'), 4)
+						};
+					}
+					boardData.timestamp =  data.timestamp;
 					// Aggiorna l'interfaccia utente con le misure (sono periodiche e tutte)
 					updateBoardUI();
 				}else if(topic === statetopic){	
@@ -175,6 +181,13 @@ function connectToBroker() {
 	}catch(e){
 		console.log('Error try:', e.message);
 	}		
+}
+
+function getFieldIfExists(obj, field) {
+    if (obj && obj.hasOwnProperty(field)) {
+        return obj[field];
+    }
+    return null;
 }
 
 // Function to switch to the next MQTT broker
@@ -204,7 +217,7 @@ function pubAtt(att, val, bId, type) {// type: write, read
 	//const timestamp = getTimestamp();
 	const message = JSON.stringify({
 		boardID: bId,
-		configs: {
+		config: {
 			[type]: {// comandi con parametri
 				[att]: val, // coppia nome_comando, parametro_comando
 			}
@@ -225,7 +238,7 @@ function pubReadAtt(bId, att) {// type: write, read
 	//const timestamp = getTimestamp();
 	const message = JSON.stringify({
 		boardID: bId,
-		configs: {
+		config: {
 			read:[att],//list of read only commands without parameters
 			}
 	});
@@ -240,13 +253,21 @@ function pubReadAtt(bId, att) {// type: write, read
 
 // Funzione per arrotondare ciascun valore a un numero specificato di cifre decimali
 function roundArrTo(array, decimals, div=1) {
-    const factor = Math.pow(10, decimals);
-    return array.map(val => Math.round(val * factor/div) / factor);
+	if (array != null){
+		const factor = Math.pow(10, decimals);
+		return array.map(val => Math.round(val * factor/div) / factor);
+	}else{
+		return null;
+	}
 }
 
 function roundTo(val, decimals) {
-    const factor = Math.pow(10, decimals);
-    return Math.round(val * factor) / factor;
+	if (val != null){
+		const factor = Math.pow(10, decimals);
+		return Math.round(val * factor) / factor;
+	}else{
+		return 0;
+	}
 }
 
 function capitalizeFirstLetter(string) {
@@ -444,33 +465,35 @@ function draw() {
 	let scaledX = 0;
 	let scaledY = 0;
 	
-    for (let i = 0; i < boardData.radarData.x.length; i++) {
-		x = Number(boardData.radarData.x[i]);
-		y = Number(boardData.radarData.y[i]);
-        
-        let vel = boardData.radarData.vel[i];
-        let distres = boardData.radarData.distres[i];
-		
-		if(boardData.radarData.rot){
-			// Scala i valori per adattarli allo schermo
-			scaledX = map(x, 6, -6, -width * 0.3, width * 0.3);
-			scaledY = map(y, 6, 0, 0, -height);
-		}else{
-			scaledX = map(x, -6, 6, -width * 0.3, width * 0.3);
-            scaledY = map(y, 0, 6, 0, -height);
+	if(boardData.radarData.x){
+		for (let i = 0; i < boardData.radarData.x.length; i++) {
+			x = Number(boardData.radarData.x[i]);
+			y = Number(boardData.radarData.y[i]);
+			
+			let vel = boardData.radarData.vel[i];
+			let distres = boardData.radarData.distres[i];
+			
+			if(boardData.radarData.rot){
+				// Scala i valori per adattarli allo schermo
+				scaledX = map(x, 6, -6, -width * 0.3, width * 0.3);
+				scaledY = map(y, 6, 0, 0, -height);
+			}else{
+				scaledX = map(x, -6, 6, -width * 0.3, width * 0.3);
+				scaledY = map(y, 0, 6, 0, -height);
+			}
+			// Disegna il punto
+			fill(0, 255, 0);
+			noStroke();        
+			ellipse(scaledX, scaledY, 10, 10);
+			// Etichette
+			fill(255);
+			textSize(12);
+			text(`X: ${x}`, scaledX + 5, scaledY - 20+boardData.radarData.rot*20);
+			text(`Y: ${y}`, scaledX + 5, scaledY - 10+boardData.radarData.rot*20);
+			text(`V: ${vel}`, scaledX + 5, scaledY+boardData.radarData.rot*20);
+			text(`D: ${distres}`, scaledX + 5, scaledY + 10+boardData.radarData.rot*20);
 		}
-        // Disegna il punto
-        fill(0, 255, 0);
-        noStroke();        
-		ellipse(scaledX, scaledY, 10, 10);
-        // Etichette
-        fill(255);
-        textSize(12);
-        text(`X: ${x}`, scaledX + 5, scaledY - 20+boardData.radarData.rot*20);
-        text(`Y: ${y}`, scaledX + 5, scaledY - 10+boardData.radarData.rot*20);
-        text(`V: ${vel}`, scaledX + 5, scaledY+boardData.radarData.rot*20);
-        text(`D: ${distres}`, scaledX + 5, scaledY + 10+boardData.radarData.rot*20);
-    }
+	}
 }
 
 function drawGrid() {

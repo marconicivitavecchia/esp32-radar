@@ -62,43 +62,71 @@ function connectToBroker() {
 			
 			if( topic === pushtopic){
 				// Verifica se esiste già un elemento per questo boardID
-				if (!boardData[boardID]) {
+				if (!boardData[boardID]) {					
+					 boardData[boardID] = {
+						radarData: {
+							x: [0, 0, 0],
+							y: [0, 0, 0],
+							vel: [0, 0, 0],
+							distres: [0, 0, 0],
+							rot: 0,
+						},
+						tempData: {
+							temp: "N/A",
+							press: "N/A",
+							hum: "N/A",
+							gas: "N/A",
+						},
+						luxData: {
+							visible: "N/A",
+							infrared: "N/A",
+							total: "N/A",
+						},
+						timestamp: "N/A",
+					};
+		
 					// Se non esiste, crea una nuova sezione HTML per questo boardID
 					createBoardSection(boardID);
 					createCanvasInstances(boardID); // Crea il canvas per questo boardID
 					setInputListeners(boardID);
 				}
-			   
-				// Update the data structure for this boardId. 
-				// Radar measurements are read periodically by the canvas draw() function 
-				// The sensor data are immediately printed on the output boxes by the updateBoardUI() function.
-				if (!boardData[boardID])
-					r = 0
-				else
-					r = boardData[boardID].radarData.rot
-				
-				boardData[boardID] = {
-					radarData: {
-						x: roundArrTo(data.radar.x, 2, 1000),
-						y: roundArrTo(data.radar.y, 2, 1000),
-						vel: roundArrTo(data.radar.vel, 2),
-						distres: roundArrTo(data.radar.distres, 2),
-						rot: r
-					},
-					tempData: {
-						temp: roundTo(data.tempSensor.temp, 2),
-						press: data.tempSensor.press,
-						hum: roundTo(data.tempSensor.hum, 2),
-						gas: data.tempSensor.gas
-					},
-					luxData: {
-						visible: roundTo(data.luxSensor.visible, 4),
-						infrared: roundTo(data.luxSensor.infrared, 4),
-						total: roundTo(data.luxSensor.total, 4)
-					},
-					timestamp: data.timestamp
-				};
-
+			    
+				try{
+					// Update the data structure for this boardId. 
+					// Radar measurements are read periodically by the canvas draw() function 
+					// The sensor data are immediately printed on the output boxes by the updateBoardUI() function.
+					
+					val = data.measures.radar
+					if ('null' != val){
+						boardData[boardID].radarData = {
+							x: roundArrTo(getFieldIfExists(val,'x'), 2, 1000),
+							y: roundArrTo(getFieldIfExists(val,'y'), 2, 1000),
+							vel: roundArrTo(getFieldIfExists(val,'vel'), 2),
+							distres: roundArrTo(getFieldIfExists(val,'distres'), 2),
+							rot: boardData[boardID].radarData.rot
+						};
+					}
+					val = data.measures.tempSensor
+					if ('null' != val){
+						boardData[boardID].tempData = {
+							temp: roundTo(getFieldIfExists(val,'temp'), 2),
+							press: roundTo(getFieldIfExists(val,'press'), 1),
+							hum: roundTo(getFieldIfExists(val,'hum'), 2),
+							gas: roundTo(getFieldIfExists(val,'gas'), 1),
+						};
+					}
+					val = data.measures.luxSensor
+					if ('null' != val){
+						boardData[boardID].luxData = {
+							visible: roundTo(getFieldIfExists(val,'visible'), 4),
+							infrared: roundTo(getFieldIfExists(val,'infrared'), 4),
+							total: roundTo(getFieldIfExists(val,'total'), 4)
+						};
+					}
+					boardData.timestamp =  data.timestamp;
+				}catch(e){
+					console.log('Error parsing:', e.message);
+				}	
 				// Aggiorna l'interfaccia utente con le misure (sono periodiche e tutte)
 				updateBoardUI(boardID);
 			}else if(topic === statetopic){	
@@ -110,6 +138,13 @@ function connectToBroker() {
 	}catch(e){
 		console.log('Error try:', e.message);
 	}	
+}
+
+function getFieldIfExists(obj, field) {
+    if (obj && obj.hasOwnProperty(field)) {
+        return obj[field];
+    }
+    return null;
 }
 
 // Function to switch to the next MQTT broker
@@ -143,7 +178,7 @@ connectToBroker();
 // 	},
 // }
 const commandMap = {
-			radar: {
+			config: {
 				fw: (value) => {
 						console.log('Setting fw to', value);
 						fw = value;
@@ -189,7 +224,7 @@ function pubAtt(att, val, bId, type) {// type: write, read
 	//const timestamp = getTimestamp();
 	const message = JSON.stringify({
 		boardID: bId,
-		configs: {
+		config: {
 			[type]: {// comandi con parametri
 				[att]: val, // coppia nome_comando, parametro_comando
 			}
@@ -210,7 +245,7 @@ function pubReadAtt(bId, att) {// type: write, read
 	//const timestamp = getTimestamp();
 	const message = JSON.stringify({
 		boardID: bId,
-		configs: {
+		config: {
 			read:[att],//list of read only commands without parameters
 			}
 	});
@@ -225,13 +260,21 @@ function pubReadAtt(bId, att) {// type: write, read
 
 // Funzione per arrotondare ciascun valore a un numero specificato di cifre decimali
 function roundArrTo(array, decimals, div=1) {
-    const factor = Math.pow(10, decimals);
-    return array.map(val => Math.round(val * factor/div) / factor);
+	if (array != null){
+		const factor = Math.pow(10, decimals);
+		return array.map(val => Math.round(val * factor/div) / factor);
+	}else{
+		return null;
+	}
 }
 
 function roundTo(val, decimals) {
-    const factor = Math.pow(10, decimals);
-    return Math.round(val * factor) / factor;
+	if (val != null){
+		const factor = Math.pow(10, decimals);
+		return Math.round(val * factor) / factor;
+	}else{
+		return 0;
+	}
 }
 
 function capitalizeFirstLetter(string) {
@@ -536,34 +579,36 @@ function createCanvasInstances(boardID) {
             drawDistanceCircles(sketch, boardID);
 
             let radarData = boardData[boardID].radarData;
-            for (let i = 0; i < radarData.x.length; i++) {
-                let x = radarData.x[i];
-                let y = radarData.y[i];
-                let vel = radarData.vel[i];
-                let distres = radarData.distres[i];
-				let scaledX = 0;
-				let scaledY = 0;
+			if(radarData && radarData.x){
+				for (let i = 0; i < radarData.x.length; i++) {
+					let x = radarData.x[i];
+					let y = radarData.y[i];
+					let vel = radarData.vel[i];
+					let distres = radarData.distres[i];
+					let scaledX = 0;
+					let scaledY = 0;
 
-				if(radarData.rot){
-					// Scala i valori per adattarli allo schermo
-					scaledX = sketch.map(x, 6, -6, -sketch.width * 0.3, sketch.width * 0.3);
-					scaledY = sketch.map(y, 6, 0, 0, -sketch.height);
-				}else{
-					scaledX = sketch.map(x, -6, 6, -sketch.width * 0.3, sketch.width * 0.3);
-					scaledY = sketch.map(y, 0, 6, 0, -sketch.height);
+					if(radarData.rot){
+						// Scala i valori per adattarli allo schermo
+						scaledX = sketch.map(x, 6, -6, -sketch.width * 0.3, sketch.width * 0.3);
+						scaledY = sketch.map(y, 6, 0, 0, -sketch.height);
+					}else{
+						scaledX = sketch.map(x, -6, 6, -sketch.width * 0.3, sketch.width * 0.3);
+						scaledY = sketch.map(y, 0, 6, 0, -sketch.height);
+					}
+
+					sketch.fill(0, 255, 0);
+					sketch.noStroke();
+					sketch.ellipse(scaledX, scaledY, 10, 10);
+
+					sketch.fill(255);
+					sketch.textSize(12);
+					sketch.text(`X: ${x}`, scaledX + 5, scaledY - 20+radarData.rot*20);
+					sketch.text(`Y: ${y}`, scaledX + 5, scaledY - 10+radarData.rot*20);
+					sketch.text(`V: ${vel}`, scaledX + 5, scaledY+radarData.rot*20);
+					sketch.text(`D: ${distres}`, scaledX + 5, scaledY + 10+radarData.rot*20);
 				}
-
-                sketch.fill(0, 255, 0);
-                sketch.noStroke();
-                sketch.ellipse(scaledX, scaledY, 10, 10);
-
-                sketch.fill(255);
-                sketch.textSize(12);
-                sketch.text(`X: ${x}`, scaledX + 5, scaledY - 20+radarData.rot*20);
-				sketch.text(`Y: ${y}`, scaledX + 5, scaledY - 10+radarData.rot*20);
-				sketch.text(`V: ${vel}`, scaledX + 5, scaledY+radarData.rot*20);
-				sketch.text(`D: ${distres}`, scaledX + 5, scaledY + 10+radarData.rot*20);
-            }
+			}
         };
         
         function resizeCanvasToDiv() {
