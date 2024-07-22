@@ -4,7 +4,7 @@
 
 ## **Definizione di topic e payload**
 
-Sovente, nella rete di distribuzione IP è presente un server col ruolo di **broker MQTT** a cui sono associati:
+Molto spesso, nella rete di distribuzione IP è presente un server col ruolo di **broker MQTT** a cui sono associati:
 - su un **topic di misura**:
     - il dispositivo **sensore** è registrato sul broker col ruolo di **publisher** perchè vuole usare questo canale di output per **inviare le misure** verso il **server applicativo**
     - il **server applicativo** è registrato come subscriber perchè è interessato a ricevere, su un canale di input, le misure di **tutti** i sensori distribuiti in rete.
