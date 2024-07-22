@@ -25,7 +25,7 @@ E' un **parser** che lavora sui messaggi **pubblicati** dall'**interfaccia web**
 Ad esempio, il JSON seguente è inviato dalla **applicazione web** sul **topic di configurazione** e rappresenta i **comandi di lettura** delle impostazioni per il polling delle misure e per la velocità della porta seriale si possono codificare nel JSON:
 
 ```Json
-"configs": {
+"config": {
         "read": ["polltime", "servel"]
 }
 ```
@@ -37,7 +37,7 @@ Ad esempio, il JSON seguente è inviato dalla **applicazione web** sul **topic d
 Ad esempio, il JSON seguente è inviato dalla **applicazione web** sul **topic di configurazione** e rappresenta i comandi di **scrittura** delle impostazioni per il polling delle misure e per la velocità della porta seriale si possono codificare nel JSON:
 
 ```Json
-"configs": {
+"config": {
         "write":{
                 "polltime": 1
                 "servel": 115200
@@ -56,7 +56,7 @@ Per questo motivo, la rappresentazione di tutti i comandi, che siano parametrizz
 ``` Python
 command_map = {
     #"boardID": check_id,
-    "configs": {
+    "config": {
         "write": {# commands whose reception causes a configuration action on the system
             "polltime": scrivi_pollTime,
             "servel": scrivi_servel,
@@ -108,25 +108,27 @@ Ad esempio, il JSON seguente è inviato dal **dispositivo IoT** sul **topic di m
 
 ```Json
 {
-    "tempSensor": {
-        "temp": 26.58,
-        "press": 10006,
-        "hum": 15.87,
-        "gas": 125356,
-    },
-    "luxSensor": {
-        "visible": 2.67,
-        "infrared": 0,
-        "total": 2.67,
-    },
-    "radar": {
-        "x": 16.78,
-        "y": 4.34,
-        "vel": 2.12,
-        "distres": 360,
-    },
-    "boardID": "04-12345678",
-    "timestamp": "20/07/2024 18:10:34",
+  "measures": {
+      "tempSensor": {
+            "temp": 26.58,
+            "press": 10006,
+            "hum": 15.87,
+            "gas": 125356,
+        },
+        "luxSensor": {
+            "visible": 2.67,
+            "infrared": 0,
+            "total": 2.67,
+        },
+        "radar": {
+            "x": 16.78,
+            "y": 4.34,
+            "vel": 2.12,
+            "distres": 360,
+        },
+        "boardID": "04-12345678",
+        "timestamp": "20/07/2024 18:10:34",
+    }
 }
 ```
 
