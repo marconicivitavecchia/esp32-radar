@@ -13,9 +13,9 @@ Se un comando non viene trovato nella mappa dei comandi, viene segnalato un erro
 
 ## **Device parser**
 
-I **comandi JSON** corrispondenti vengono inviati dal **server applicativo** o dall'**interfaccia web** ed è un parser che lavora sui messaggi **pubblicati dall'applicazione** su:
-- un **topic di configurazione** in cui solo il server applicativo è un publisher mentre tutti gli altri dispositivi IoT sono subscriber. Serve ad **impostare da remoto** i parametri di funzionamento del dispositivo.
-- un **topic di feedback (stato)** per indicare al dispositivo le informazioni sullo **stato** che il server applicativo o l'utente sono interessati a conoscere.
+E' un **parser** che lavora sui messaggi **pubblicati** dall'**interfaccia web** o dal **server applicativo** e i **comandi JSON** corrispondenti vengono inviati  su un:
+- **topic di configurazione** in cui solo il server applicativo è un publisher mentre tutti gli altri dispositivi IoT sono subscriber. Serve ad **impostare da remoto** i parametri di funzionamento del dispositivo.
+- **topic di feedback (stato)** per indicare al dispositivo le informazioni sullo **stato** che il server applicativo o l'utente sono interessati a conoscere.
   
 **Mappa delle funzioni** di **lettura** da eseguire su un determinato percorso dei comandi ricevuti (stati):
 - Devono **coincidere** con i percorsi corrispondenti dell'oggetto JSON trasmesso.
@@ -76,9 +76,9 @@ command_map = {
 ```
 ## **Application parser**
 
-I comandi JSON corrispondenti vengono inviati dal dispositivo IoT ed è un parser che lavora sui messaggi inviati dal dispositivo IoT su
-- un **topic di misura** e invoca la funzione con la responsabilità di mostrare le misure nell'interfaccia utente o di raccoglierle in un database.
-- un **topic di feedback (stato)** (dal dispositivo terminale, al broker), utile all'application server per ricevere conferma del cambio di stato dell'attuatore ma anche utile all'utente per conoscere il nuovo stato.
+E' un **parser** che lavora sui messaggi **pubblicati** dall'**dispositivo IoT** e i **comandi JSON** corrispondenti vengono inviati  su un:
+- **topic di misura** e invoca la funzione con la responsabilità di mostrare le misure nell'interfaccia utente o di raccoglierle in un database.
+- **topic di feedback (stato)** (dal dispositivo terminale, al broker), utile all'application server per ricevere conferma del cambio di stato dell'attuatore ma anche utile all'utente per conoscere il nuovo stato.
 
 I **comandi** per **entrambi i topic** sono, in questo caso, generalmente **tutti parametrizzati** e le funzioni associate sono **tutte di scrittura** e chiaramente valorizzate con almeno un **parametro**.
 
