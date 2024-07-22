@@ -76,7 +76,7 @@ command_map = {
 ```
 ## **Application parser**
 
-E' un **parser** che lavora sui messaggi **pubblicati** dall'**dispositivo IoT** e i **comandi JSON** corrispondenti vengono inviati  su un:
+E' un **parser** che lavora sui messaggi **pubblicati** dal **dispositivo IoT** e i **comandi JSON** corrispondenti vengono inviati  su un:
 - **topic di misura** e invoca la funzione con la responsabilità di mostrare le misure nell'interfaccia utente o di raccoglierle in un database.
 - **topic di feedback (stato)** (dal dispositivo terminale, al broker), utile all'application server per ricevere conferma del cambio di stato dell'attuatore ma anche utile all'utente per conoscere il nuovo stato.
 
