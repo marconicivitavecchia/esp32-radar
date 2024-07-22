@@ -17,7 +17,6 @@ Il parser permette la lettura di **elenchi parziali** di comandi, nel senso che 
 
 E' un **parser** che lavora sui messaggi **pubblicati** dall'**interfaccia web** o dal **server applicativo** e i **comandi JSON** corrispondenti vengono inviati  su un:
 - **topic di configurazione** in cui solo il server applicativo è un publisher mentre tutti gli altri dispositivi IoT sono subscriber. Serve ad **impostare da remoto** i parametri di funzionamento del dispositivo.
-- **topic di feedback (stato)** per indicare al dispositivo le informazioni sullo **stato** che il server applicativo o l'utente sono interessati a conoscere.
   
 **Mappa delle funzioni** di **lettura** da eseguire su un determinato percorso dei comandi ricevuti (stati):
 - Devono **coincidere** con i percorsi corrispondenti dell'oggetto JSON trasmesso.
