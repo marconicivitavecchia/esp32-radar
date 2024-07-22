@@ -126,9 +126,9 @@ Ad esempio, il JSON seguente è inviato dal **dispositivo IoT** sul **topic di m
             "vel": 2.12,
             "distres": 360,
         },
-        "boardID": "04-12345678",
-        "timestamp": "20/07/2024 18:10:34",
-    }
+   }
+  "boardID": "04-12345678",
+  "timestamp": "20/07/2024 18:10:34"
 }
 ```
 
