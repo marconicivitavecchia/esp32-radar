@@ -11,7 +11,7 @@
 
 Se un comando non viene trovato nella mappa dei comandi, viene segnalato un errore e si passa al parsing del comando successivo.
 
-Il parser permette la lettura di **elenchi parziali** di comandi, nel senso che non devono essere necessariamente tutti presenti nello stesso ogetto JSON. I **comandi** sono **entità atomiche** interpretate **singolarmente** in **maniera asincrona** (non periodica) al momento dell'arrivo del messaggio e viene invocata **una funzione** per **ogni singolo comando** interpretato.
+Il parser permette la lettura di **elenchi parziali** di comandi, nel senso che non devono essere necessariamente tutti presenti nello stesso ogetto JSON. I **comandi** sono **entità atomiche** interpretate **singolarmente** in **maniera asincrona** (non periodica) al momento dell'arrivo del messaggio e viene invocata **una funzione** per **ogni singolo campo** interpretato.
 
 ## **Device parser**
 
@@ -130,7 +130,7 @@ Ad esempio, il JSON seguente è inviato dal **dispositivo IoT** sul **topic di m
 }
 ```
 
-Quest'ultimo messaggio tuttavia non viene gestito dal parser JSON della pagina perchè, nella attuale implementazione, ha la particolarità di essere **periodico** e **atomico a livello di oggetto**, cioè **tutti i campi** sono sempe presenti e non è necessaria una loro **interpretazione parziale**. In sostanza, viene effettuata la trasformazione da stringa JSON a oggetto JS dell'intero messaggio per il quale viene invocata un'unica funzione.
+Quest'ultimo messaggio tuttavia non viene gestito dal parser JSON della pagina perchè, nella attuale implementazione, ha la particolarità di essere **periodico** e **atomico a livello di oggetto**, cioè **tutti i campi** sono sempe presenti e non è necessaria una loro **interpretazione parziale**. In sostanza, viene effettuata la trasformazione da stringa JSON a oggetto JS dell'intero messaggio per il quale viene invocata un'**unica funzione** che gestisce **tutti i campi**.
 
 Gli array associativi in JS vengono comunque rappresentati come oggetti che contengono liste di coppie campo-valore.
 
