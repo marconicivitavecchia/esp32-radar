@@ -25,14 +25,14 @@ Sovente, nella rete di distribuzione IP è presente un server col ruolo di **bro
 Potremmo a questo punto inserire la misura della temperatura e della pressione nel topic più generale delle misure che chiameremo ```misure``` e registrare il sensore di temperatura e presenza del soggiorno al topic ```/soggiorno/misure``` come publisher, mentre potremmo registrare il server di gestione al topic ```+/misure``` come subscriber delle misure di tutti gli ambienti. Il messaggio potrebbe essere il JSON  
 ``` Json
 {
-"envSensor": {
-"temp": 43,
-"press": 1001,
-"hum": 27.5,
-"gas": 1400,
-},
-"deviceID": "01",
-"timestamp": "2024-07-20T09:43:27",
+   "envSensor":{
+      "temp":43,
+      "press":1001,
+      "hum":27.5,
+      "gas":1400
+   },
+   "deviceID":"01",
+   "timestamp":"2024-07-20T09:43:27"
 }
 ```
 Se volessimo selezionare un solo dispositivo sono possibili due strade alternative:
