@@ -111,7 +111,7 @@ Ad esempio, il JSON seguente è inviato dal **dispositivo IoT** sul **topic di m
     "tempSensor": {
         "temp": 26.58,
         "press": 10006,
-        "hum": 15,87,
+        "hum": 15.87,
         "gas": 125356,
     },
     "luxSensor": {
