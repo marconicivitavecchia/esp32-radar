@@ -142,34 +142,38 @@ function connectToBroker() {
 					// Update the data structure for this boardId. 
 					// Radar measurements are read periodically by the canvas draw() function 
 					// The sensor data are immediately printed on the output boxes by the updateBoardUI() function.
-					val = data.measures.radar
-					if ('null' != val){
-						boardData.radarData = {
-							x: roundArrTo(getFieldIfExists(val,'x'), 2, 1000),
-							y: roundArrTo(getFieldIfExists(val,'y'), 2, 1000),
-							vel: roundArrTo(getFieldIfExists(val,'vel'), 2),
-							distres: roundArrTo(getFieldIfExists(val,'distres'), 2),
-							rot: boardData.radarData.rot
-						};
-					}
-					val = data.measures.tempSensor
-					if ('null' != val){
-						boardData.tempData = {
-							temp: roundTo(getFieldIfExists(val,'temp'), 2),
-							press: roundTo(getFieldIfExists(val,'press'), 1),
-							hum: roundTo(getFieldIfExists(val,'hum'), 2),
-							gas: roundTo(getFieldIfExists(val,'gas'), 1),
-						};
-					}
-					val = data.measures.luxSensor
-					if ('null' != val){
-						boardData.luxData = {
-							visible: roundTo(getFieldIfExists(val,'visible'), 4),
-							infrared: roundTo(getFieldIfExists(val,'infrared'), 4),
-							total: roundTo(getFieldIfExists(val,'total'), 4)
-						};
-					}
-					boardData.timestamp =  data.timestamp;
+					try{
+						val = data.measures.radar
+						if ('null' != val){
+							boardData.radarData = {
+								x: roundArrTo(getFieldIfExists(val,'x'), 2, 1000),
+								y: roundArrTo(getFieldIfExists(val,'y'), 2, 1000),
+								vel: roundArrTo(getFieldIfExists(val,'vel'), 2),
+								distres: roundArrTo(getFieldIfExists(val,'distres'), 2),
+								rot: boardData.radarData.rot
+							};
+						}
+						val = data.measures.tempSensor
+						if ('null' != val){
+							boardData.tempData = {
+								temp: roundTo(getFieldIfExists(val,'temp'), 2),
+								press: roundTo(getFieldIfExists(val,'press'), 1),
+								hum: roundTo(getFieldIfExists(val,'hum'), 2),
+								gas: roundTo(getFieldIfExists(val,'gas'), 1),
+							};
+						}
+						val = data.measures.luxSensor
+						if ('null' != val){
+							boardData.luxData = {
+								visible: roundTo(getFieldIfExists(val,'visible'), 4),
+								infrared: roundTo(getFieldIfExists(val,'infrared'), 4),
+								total: roundTo(getFieldIfExists(val,'total'), 4)
+							};
+						}
+						boardData.timestamp =  data.timestamp;
+					}catch(e){
+						console.log('Error parsing:', e.message);
+					}	
 					// Aggiorna l'interfaccia utente con le misure (sono periodiche e tutte)
 					updateBoardUI();
 				}else if(topic === statetopic){	
