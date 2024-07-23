@@ -140,7 +140,7 @@ Per cui, la rappresentazione di tutti i comandi, che siano parametrizzati o meno
 
 ```js
 const commandMap = {
-        config: {
+        state: {
                 fw: (value) => {
                                 console.log('Setting fw to', value);
                                 fw = value;
