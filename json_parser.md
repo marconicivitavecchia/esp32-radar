@@ -91,7 +91,7 @@ Ad esempio, il JSON seguente è inviato dal **dispositivo IoT** sul **topic di f
 
 ```Json
 {
-  "config": {
+  "state": {
         "fw": "V256.516.588257557",
         "servel": 256000,
         "polltime": 1,
