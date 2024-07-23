@@ -75,7 +75,7 @@ def pubStateAtt(att, val):
      timestamp = getTimestamp()
      message = ujson.dumps(
         {
-            "config": {
+            "state": {
                 att: val,
             },
             "boardID": esp32_unique_id,
@@ -96,7 +96,7 @@ def pubAllState():
      # upon receipt of a status request command
      message = ujson.dumps(
         {
-            "config": {
+            "state": {
                 "fw": fwval,
                 "servel": radarvel,
                 "polltime": polltimeval,
