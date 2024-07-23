@@ -2,7 +2,7 @@
 
 A school project to create a radar using ESP32, Adafruit LTR329 sensor, Hi-Link HLK-LD2450 radar and MicroPython.
 
-The project is initially created by prof. Sebatiano Melita.
+The project is initially created by prof. Sebastiano Melita.
 
 This project includes a web page for remote monitoring and control. This is a screenshot of the page:
 
