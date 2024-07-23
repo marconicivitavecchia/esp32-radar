@@ -178,7 +178,7 @@ connectToBroker();
 // 	},
 // }
 const commandMap = {
-			config: {
+			state: {
 				fw: (value) => {
 						console.log('Setting fw to', value);
 						fw = value;
