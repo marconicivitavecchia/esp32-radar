@@ -109,7 +109,7 @@ Ad esempio, il JSON seguente è inviato dal **dispositivo IoT** sul **topic di m
 ```Json
 {
   "measures": {
-      "tempSensor": {
+        "tempSensor": {
             "temp": 26.58,
             "press": 10006,
             "hum": 15.87,
