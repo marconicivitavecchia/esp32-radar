@@ -1,5 +1,5 @@
 
-
+> [Ritorna alla pagina principale](README.md)
 
 
 ```yaml
@@ -195,3 +195,6 @@ mqtt:
           call.set_value(x["radar"]["distres"].as<float>());
           id(radar_distres_value) = call.get_value();
 ```
+
+
+> [Ritorna alla pagina principale](README.md)
