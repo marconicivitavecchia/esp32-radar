@@ -1,6 +1,7 @@
 > [Ritorna alla pagina principale](/README.md)
 
 
+# **Integrazione con Home Assistant**
 
 ```yaml
 mqtt:
