@@ -25,5 +25,5 @@ Remember to rename `config-example.py` into `config.py` and adjust the values ac
 
 - [Gestione dei messaggi MQTT](mqtt_messages_logic.md)
 - [Parser JSON](json_parser.md)
-- [Integrazione con EspHome](esphome/esphome.md)
+- [Integrazione con EspHome](/esphome/esphome.md)
 - [Integrazione con HomeAssistant](/HomeAssistant/homeAssistant.md)
