@@ -87,4 +87,7 @@ sensor:
     unit_of_measurement: "m"
 ```
 
+Sitografia:
+- chatGPT per integrazione con Home Assistant
+  
 > [Ritorna alla pagina principale](/README.md)
