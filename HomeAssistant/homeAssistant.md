@@ -97,7 +97,7 @@ La **griglia di monitoraggio** può essere integrata nella dashboard di Home Ass
 1. Pubblica il File HTML: assicurati che il file HTML sia accessibile tramite un server web. Puoi ospitare questo file su un server web locale o su un servizio di hosting di file.
 2. Usa una iframe Card in Lovelace: configura una card iframe in Lovelace per includere la pagina HTML.
 
-Aggiungi l'URL del file ```radar.html``` ospitato alla tua configurazione di Lovelace usando un'iframe card.
+Aggiungi l'URL del file ```radar.html```, fornito nella cartella web del progetto, alla tua configurazione di Lovelace usando un'iframe card.
 
 ```yaml
 # ui-lovelace.yaml
@@ -111,7 +111,7 @@ views:
         title: Radar Coordinate Display
 ```
 
-Oppure aggiungi l'URL del file ```radar2.html``` ospitato alla tua configurazione di Lovelace usando un'iframe card.
+Oppure aggiungi l'URL del file ```radar2.html```, fornito nella cartella web del progetto, alla tua configurazione di Lovelace usando un'iframe card.
 
 ```yaml
 # ui-lovelace.yaml
