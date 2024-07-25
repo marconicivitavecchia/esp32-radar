@@ -1,4 +1,4 @@
-
+> [Ritorna alla pagina principale](/README.md)
 
 
 
@@ -76,3 +76,5 @@ sensor:
     value_template: "{{ value_json.measures.radar.distres }}"
     unit_of_measurement: "m"
 ```
+
+> [Ritorna alla pagina principale](/README.md)
