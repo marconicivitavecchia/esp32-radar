@@ -106,41 +106,9 @@ Ad esempio, il JSON seguente è inviato dal **dispositivo IoT** sul **topic di f
 }
 ```
 
-### **Topic di misura**
-
-Ad esempio, il JSON seguente è inviato dal **dispositivo IoT** sul **topic di misura** e rappresenta rappresenta i **comandi di scrittura** delle misure di radar e sensori di ambiente sulla dashboard della pagina web si possono codificare nel JSON:
-
-```Json
-{
-  "measures": {
-        "tempSensor": {
-            "temp": 26.58,
-            "press": 10006,
-            "hum": 15.87,
-            "gas": 125356,
-        },
-        "luxSensor": {
-            "visible": 2.67,
-            "infrared": 0,
-            "total": 2.67,
-        },
-        "radar": {
-            "x": 16.78,
-            "y": 4.34,
-            "vel": 2.12,
-            "distres": 360,
-        },
-   }
-  "boardID": "04-12345678",
-  "timestamp": "20/07/2024 18:10:34"
-}
-```
-
-Quest'ultimo messaggio tuttavia non viene gestito dal **parser JSON ricorsivo** della pagina perchè, nella attuale implementazione, ha la particolarità di essere **periodico** e **atomico a livello di oggetto**, cioè **tutti i campi** sono sempe presenti e non è necessaria una loro **interpretazione parziale**. Più semplicemente, viene effettuata la **trasformazione** da stringa JSON a oggetto JS dell'intero messaggio per il quale viene poi invocata un'**unica funzione** che gestisce **tutti i campi**.
-
 Gli array associativi in JS vengono comunque rappresentati come oggetti che contengono liste di coppie campo-valore.
 
-Per cui, la rappresentazione di tutti i comandi, che siano parametrizzati o meno, è sostanzialmente uniforme, cioè si realizza allo stesso modo per entrambe le tipologie di funzioni. La **mappa** corrispondente ai json di **misura** e **stato** è:
+Per cui, la rappresentazione di tutti i comandi, che siano parametrizzati o meno, è sostanzialmente uniforme, cioè si realizza allo stesso modo per entrambe le tipologie di funzioni. La **mappa** corrispondente ai json di **stato** è:
 
 ```js
 const commandMap = {
@@ -185,6 +153,38 @@ const commandMap = {
         },
 };		
 ```
+
+### **Topic di misura**
+
+Ad esempio, il JSON seguente è inviato dal **dispositivo IoT** sul **topic di misura** e rappresenta rappresenta i **comandi di scrittura** delle misure di radar e sensori di ambiente sulla dashboard della pagina web si possono codificare nel JSON:
+
+```Json
+{
+  "measures": {
+        "tempSensor": {
+            "temp": 26.58,
+            "press": 10006,
+            "hum": 15.87,
+            "gas": 125356,
+        },
+        "luxSensor": {
+            "visible": 2.67,
+            "infrared": 0,
+            "total": 2.67,
+        },
+        "radar": {
+            "x": 16.78,
+            "y": 4.34,
+            "vel": 2.12,
+            "distres": 360,
+        },
+   }
+  "boardID": "04-12345678",
+  "timestamp": "20/07/2024 18:10:34"
+}
+```
+
+Quest'ultimo messaggio tuttavia non viene gestito dal **parser JSON ricorsivo** della pagina perchè, nella attuale implementazione, ha la particolarità di essere **periodico** e **atomico a livello di oggetto**, cioè **tutti i campi** sono sempe presenti e non è necessaria una loro **interpretazione parziale**. Più semplicemente, viene effettuata la **trasformazione** da stringa JSON a oggetto JS dell'intero messaggio per il quale viene poi invocata un'**unica funzione** che gestisce **tutti i campi**.
 
 Sitografia:
 - chatGPT per parser con mappa di funzioni.
