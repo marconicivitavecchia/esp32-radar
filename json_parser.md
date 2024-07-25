@@ -87,6 +87,8 @@ La **mappa delle funzioni** di **scrittura** da eseguire su un determinato perco
 - Devono **coincidere** con i percorsi corrispondenti dell'oggetto JSON trasmesso.
 - I comandi di **scrittura** sono **con parametri** e devono essere rappresentati nel JSON come **coppie chiave-valore** di comandi.
 
+### **Topic di feedback (stato)**
+
 Ad esempio, il JSON seguente è inviato dal **dispositivo IoT** sul **topic di feedback** (stato) e rappresenta i **comandi di scrittura** delle impostazioni complessive del sistema (stato corrente) sulla **dashboard** della pagina web si possono codificare nel JSON:
 
 ```Json
@@ -103,6 +105,8 @@ Ad esempio, il JSON seguente è inviato dal **dispositivo IoT** sul **topic di f
   "timestamp": "20/07/2024 18:10:34",
 }
 ```
+
+### **Topic di misura**
 
 Ad esempio, il JSON seguente è inviato dal **dispositivo IoT** sul **topic di misura** e rappresenta rappresenta i **comandi di scrittura** delle misure di radar e sensori di ambiente sulla dashboard della pagina web si possono codificare nel JSON:
 
