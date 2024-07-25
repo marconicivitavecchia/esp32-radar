@@ -205,5 +205,7 @@ mqtt:
           id(radar_distres_value) = call.get_value();
 ```
 
+Sitografia:
+- chatGPT per integrazione con EspHome
 
 > [Ritorna alla pagina principale](/README.md)
