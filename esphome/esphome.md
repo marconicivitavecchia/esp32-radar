@@ -3,6 +3,14 @@
 
 # **Integrazione con EspHome**
 
+Per pubblicare tutte le misure con un unico oggetto JSON tramite MQTT e far sì che ESPHome le riceva correttamente, si deve configurare ESPHome per gestire la ricezione di questo oggetto JSON e successivamente estrarre i valori dai payload JSON ricevuti.
+
+## **Configurazione di ESPHome**
+
+ESPHome può usare automazioni per gestire i payload JSON. Si dovrà usare ```mqtt_subscribe``` per ricevere il messaggio e poi un template per estrarre i dati JSON.
+
+Esempio di Configurazione YAML per ESPHome:
+
 ```yaml
 esphome:
   name: your_device_name
