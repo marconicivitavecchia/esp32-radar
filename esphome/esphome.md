@@ -1,5 +1,5 @@
 
-> [Ritorna alla pagina principale](README.md)
+> [Ritorna alla pagina principale](/README.md)
 
 
 ```yaml
