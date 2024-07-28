@@ -241,7 +241,7 @@ const commandMap = {
 				console.log('Setting fw to', value);
 				boardData[currBoardId].fw = value;
 				let timestampElement = document.querySelector(`#timestamp-${currBoardId}`);
-				timestampElement.innerText = boardData[currBoardId].timestamp + "   -   FW version: " + boardData[currBoardId].fw;
+				timestampElement.innerText = boardData[currBoardId].timestamp + " - FW version: " + boardData[currBoardId].fw;
 			},
 		polltime: (value) => {
 				console.log('Setting pollTime to', value);
@@ -269,7 +269,7 @@ const commandMap = {
 	timestamp: (val) => {
 		boardData[currBoardId].timestamp = convertDateTimeToHumanReadable(val);
 		let timestampElement = document.querySelector(`#timestamp-${currBoardId}`);
-		timestampElement.innerText = boardData[currBoardId].timestamp + "   -   FW version: " + boardData[currBoardId].fw;
+		timestampElement.innerText = boardData[currBoardId].timestamp + " - FW version: " + boardData[currBoardId].fw;
 	},
 	boardID: (val) => {
 		console.log('boardID');
