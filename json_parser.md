@@ -186,6 +186,8 @@ Ad esempio, il JSON seguente è inviato dal **dispositivo IoT** sul **topic di m
 
 Quest'ultimo messaggio, nella versione **radar1.html** dell'applicazione web, non viene gestito dal **parser JSON ricorsivo** della pagina perchè, nella attuale implementazione del FW del dispositivo, ha la particolarità di essere **periodico** e **atomico a livello di oggetto**, cioè **tutti i campi** sono sempe presenti e non è necessaria una loro **interpretazione parziale**. Più semplicemente, viene effettuata la **trasformazione** da stringa JSON a oggetto JS dell'intero messaggio per il quale viene poi invocata un'**unica funzione** che gestisce **tutti i campi**.
 
+#### **Parser a profondità variabile**
+
 Invece, lo stesso messaggio, nella versione **radar2.html** dell'applicazione web, viene gestito direttamente dal **parser JSON ricorsivo** della pagina perchè si è utilizzata la sua particolarità di avere una profonditàò di parsing impostabile in base al nome dell'oggetto contenitore di un elenco di misure. In questo caso il contenitore è l'oggetto JSON ```"measures"``` e i campi  ```"tempSensor"```, ```"luxSensor``` e ```"radar"``` sono interpretati come oggetti e non come tipi primitivi e sono passati ad una funzione della command map che legge tutti i valori primitivi e li inserisce nella loro posizione di output nell'interfaccia grafica.
 
 In **quest'ultimo caso** la **command map** che raccoglie tutte le callback che eseguono le azioni di parsing diventa:
