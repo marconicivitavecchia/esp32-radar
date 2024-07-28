@@ -188,7 +188,7 @@ Quest'ultimo messaggio, nella versione **radar1.html** dell'applicazione web, no
 
 #### **Parser a profondità variabile**
 
-Invece, lo stesso messaggio, nella versione **radar2.html** dell'applicazione web, viene gestito direttamente dal **parser JSON ricorsivo** della pagina perchè si è utilizzata la sua particolarità di avere una **profondità di parsing** impostabile in base al nome dell'oggetto contenitore di un elenco di misure. In questo caso il contenitore è l'oggetto JSON ```"measures"``` e i campi  ```"tempSensor"```, ```"luxSensor``` e ```"radar"``` sono interpretati come oggetti e non come tipi primitivi e sono passati ad una funzione della command map che legge tutti i valori primitivi e li inserisce nella loro posizione di output nell'interfaccia grafica.
+Invece, lo stesso messaggio, nella versione **radar2.html** dell'applicazione web, viene gestito direttamente dal **parser JSON ricorsivo** della pagina perchè si è utilizzata la sua particolarità di avere una **profondità di parsing** impostabile in base al nome dell'oggetto **contenitore** di un elenco di misure oppure in base al **nome** della misura. In questo caso il contenitore è l'oggetto JSON ```"measures"``` e i campi  ```"tempSensor"```, ```"luxSensor``` e ```"radar"``` sono interpretati come oggetti e non come tipi primitivi e sono passati ad una funzione della command map che legge tutti i valori primitivi e li inserisce nella loro posizione di output nell'interfaccia grafica.
 
 In **quest'ultimo caso** la **command map** che raccoglie tutte le callback che eseguono le azioni di parsing diventa:
 
