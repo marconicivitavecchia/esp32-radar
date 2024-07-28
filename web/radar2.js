@@ -3,8 +3,8 @@
 //const topic = 'radar/misure'; // Sostituisci con il tuo topic MQTT
 
 var boardData = []; // data structure where the measurements sent by the device via MQTT (PUSH mode) are stored
-var fw = "";
 var currBoardId;
+var ms;
 
 // List of MQTT brokers to connect to
 // the main broker is the preferred broker
@@ -83,6 +83,7 @@ function connectToBroker() {
 							total: "N/A",
 						},
 						timestamp: "N/A",
+						fw: "N/A",
 					};
 		
 					// Se non esiste, crea una nuova sezione HTML per questo boardID
@@ -90,50 +91,13 @@ function connectToBroker() {
 					createCanvasInstances(boardID); // Crea il canvas per questo boardID
 					setInputListeners(boardID);
 				}
-			    
-				try{
-					// Update the data structure for this boardId. 
-					// Radar measurements are read periodically by the canvas draw() function 
-					// The sensor data are immediately printed on the output boxes by the updateBoardUI() function.
-					
-					val = data.measures.radar
-					if ('null' != val){
-						boardData[boardID].radarData = {
-							x: roundArrTo(getFieldIfExists(val,'x'), 2, 1000),
-							y: roundArrTo(getFieldIfExists(val,'y'), 2, 1000),
-							vel: roundArrTo(getFieldIfExists(val,'vel'), 2),
-							distres: roundArrTo(getFieldIfExists(val,'distres'), 2),
-							rot: boardData[boardID].radarData.rot
-						};
-					}
-					val = data.measures.tempSensor
-					if ('null' != val){
-						boardData[boardID].tempData = {
-							temp: roundTo(getFieldIfExists(val,'temp'), 2),
-							press: roundTo(getFieldIfExists(val,'press'), 1),
-							hum: roundTo(getFieldIfExists(val,'hum'), 2),
-							gas: roundTo(getFieldIfExists(val,'gas'), 1),
-						};
-					}
-					val = data.measures.luxSensor
-					if ('null' != val){
-						boardData[boardID].luxData = {
-							visible: roundTo(getFieldIfExists(val,'visible'), 4),
-							infrared: roundTo(getFieldIfExists(val,'infrared'), 4),
-							total: roundTo(getFieldIfExists(val,'total'), 4)
-						};
-					}
-					boardData.timestamp =  data.timestamp;
-				}catch(e){
-					console.log('Error parsing:', e.message);
-				}	
-				// Aggiorna l'interfaccia utente con le misure (sono periodiche e tutte)
-				updateBoardUI(boardID);
 			}else if(topic === statetopic){	
-				currBoardId = boardID;
-				console.log('Msg:', data);
-				processJson(commandMap, data);	// Aggiorna l'interfaccia utente con gli stati (sono asincroni e singoli)	
+				console.log('Msg:', data);		
 			}
+			currBoardId = boardID;
+			//ms = ["measures"];
+			ms = ["tempSensor", "luxSensor", "radar"];
+			processJson(commandMap, data, [], ms);
 		});
 	}catch(e){
 		console.log('Error try:', e.message);
@@ -178,10 +142,50 @@ connectToBroker();
 // 	},
 // }
 const commandMap = {
+			measures: {
+				radar: (value) =>{
+					console.log('radar ', value);
+					boardData[currBoardId].radarData = {
+						x: roundArrTo(getFieldIfExists(value,'x'), 2, 1000),
+						y: roundArrTo(getFieldIfExists(value,'y'), 2, 1000),
+						vel: roundArrTo(getFieldIfExists(value,'vel'), 2),
+						distres: roundArrTo(getFieldIfExists(value,'distres'), 2),
+						rot: boardData[currBoardId].radarData.rot
+					}
+				},
+				tempSensor: (value) =>{
+					console.log('tempSensor ', value);
+					boardData[currBoardId].tempData = {
+						temp: roundTo(getFieldIfExists(value,'temp'), 2),
+						press: roundTo(getFieldIfExists(value,'press'), 1),
+						hum: roundTo(getFieldIfExists(value,'hum'), 2),
+						gas: roundTo(getFieldIfExists(value,'gas'), 1),
+					}
+					let sensorDataElement = document.querySelector(`#sensorData-${currBoardId}`);
+					sensorDataElement.querySelector('.temp').innerText = `${boardData[currBoardId].tempData.temp} °C`;
+					sensorDataElement.querySelector('.press').innerText = `${boardData[currBoardId].tempData.press} Pa`;
+					sensorDataElement.querySelector('.hum').innerText = `${boardData[currBoardId].tempData.hum} %`;
+					sensorDataElement.querySelector('.gas').innerText = `${boardData[currBoardId].tempData.gas}`;
+				},
+				luxSensor: (value) =>{
+					console.log('luxSensor ', value);
+					boardData[currBoardId].luxData = {
+						visible: roundTo(getFieldIfExists(value,'visible'), 4),
+						infrared: roundTo(getFieldIfExists(value,'infrared'), 4),
+						total: roundTo(getFieldIfExists(value,'total'), 4)
+					}
+					let sensorDataElement = document.querySelector(`#sensorData-${currBoardId}`);
+					sensorDataElement.querySelector('.visible').innerText = `${boardData[currBoardId].luxData.visible} Lux`;
+					sensorDataElement.querySelector('.infrared').innerText = `${boardData[currBoardId].luxData.infrared} Lux`;
+					sensorDataElement.querySelector('.total').innerText = `${boardData[currBoardId].luxData.total} Lux`;
+				}
+			},
 			state: {
 				fw: (value) => {
 						console.log('Setting fw to', value);
-						fw = value;
+						boardData[currBoardId].fw = value;
+						let timestampElement = document.querySelector(`#timestamp-${currBoardId}`);
+						timestampElement.innerText = boardData[currBoardId].timestamp + "   -   FW version: " + boardData[currBoardId].fw;
 					},
 				polltime: (value) => {
 						console.log('Setting pollTime to', value);
@@ -206,9 +210,10 @@ const commandMap = {
 					setElem(currBoardId, "radarstate", value);
 				},
 			},
-			timestamp: () => {
-				console.log('Rebooting radar');
-				
+			timestamp: (val) => {
+				boardData[currBoardId].timestamp = convertDateTimeToHumanReadable(val);
+				let timestampElement = document.querySelector(`#timestamp-${currBoardId}`);
+				timestampElement.innerText = boardData[currBoardId].timestamp + "   -   FW version: " + boardData[currBoardId].fw;
 			},
 			boardID: (val) => {
 				console.log('boardID');
@@ -216,7 +221,8 @@ const commandMap = {
 				let inputelem = elem.querySelector('.boardID');
 				inputelem.innerHTML = val;
 			},
-		};		
+		};
+
 
 // Sends, via a JSON, the command to perform configuration settings on the IoT device in a PUSH mode.
 // These are commands with parameters that call functions with arguments.
@@ -298,21 +304,24 @@ function setElem(boardID, type, val, target='.send'){
 // Returns the path of the command in the received JSON data structure. 
 // The path must correspond to the path of the function to be called in the data structure of the command map. 
 // Invokes the function which, in the command map, has its pointer on that path.
-function processJson(commandMap, jsonObj, basePath = []) {
+function processJson(commandMap, jsonObj, basePath = [], measures = []) {
+	//let measure = false;
+	//if(measures.includes(basePath[basePath.length-1])){
+	//	measure = true;
+	//}
+
     for (const key in jsonObj) {
         if (jsonObj.hasOwnProperty(key)) {
             const value = jsonObj[key];
             const currentPath = [...basePath, key];
-            if (typeof value === 'object' && !Array.isArray(value)) {
-				console.log('currentPath:', currentPath);
-				console.log('value:', value);
-                processJson(commandMap, value, currentPath);
+            if (typeof value === 'object' && !Array.isArray(value) && !measures.includes(key)) {
+				processJson(commandMap, value, currentPath, measures);          
             } else if (Array.isArray(value)) {// if it is a list of functions without parameters
                 for (const item of value) {
                     executeCommand(commandMap, [...currentPath, item]);
                 }
-            } else {// if it is the field (key, value) corresponding to the pair (function name, list of function parameters)
-                executeCommand(commandMap, currentPath, value);  
+            } else {// if it is a primitive value, the field (key, value) corresponding to the pair (function name, list of function parameters)
+                executeCommand(commandMap, currentPath, value); // value is a primitive value 
             }
         }
     }
@@ -321,15 +330,15 @@ function processJson(commandMap, jsonObj, basePath = []) {
 // Function that retrieves and invoke the function at the command path
 function executeCommand(commandMap, commandPath, parameters = null) {
     let currentLevel = commandMap;
-    for (const key of commandPath) {
-        if (currentLevel[key]) {
+    for (const key of commandPath) { 
+        if (currentLevel[key]) { // itera sui campi annidati fino all'ultimo istanziato
             currentLevel = currentLevel[key];
         } else {
-            console.error(`Unknown command: ${commandPath.join('/')}`);
-            return;
+            console.log(`Unknown command: ${commandPath.join('/')}`);
+			return;
         }
     }
-
+	
     if (typeof currentLevel === 'function') {
         if (parameters !== null) {
             currentLevel(parameters);
@@ -539,23 +548,6 @@ function setInputListeners(boardID) {
 			radarinvertsend.value = "Griglia non ruotata";
 		}
 	}
-}
-
-// Massive update of measurement outputs
-// is used for the massive update of all measurements
-function updateBoardUI(boardID) {
-   
-    let timestampElement = document.querySelector(`#timestamp-${boardID}`);
-    timestampElement.innerText = convertDateTimeToHumanReadable(boardData[boardID].timestamp) + "   -   FW version: " + fw;
-
-    let sensorDataElement = document.querySelector(`#sensorData-${boardID}`);
-    sensorDataElement.querySelector('.temp').innerText = `${boardData[boardID].tempData.temp} °C`;
-    sensorDataElement.querySelector('.press').innerText = `${boardData[boardID].tempData.press} Pa`;
-    sensorDataElement.querySelector('.hum').innerText = `${boardData[boardID].tempData.hum} %`;
-    sensorDataElement.querySelector('.gas').innerText = `${boardData[boardID].tempData.gas}`;
-    sensorDataElement.querySelector('.visible').innerText = `${boardData[boardID].luxData.visible} Lux`;
-    sensorDataElement.querySelector('.infrared').innerText = `${boardData[boardID].luxData.infrared} Lux`;
-    sensorDataElement.querySelector('.total').innerText = `${boardData[boardID].luxData.total} Lux`;
 }
 
 // Creazione funzione di setup e loop di disegno di ogni canvas
