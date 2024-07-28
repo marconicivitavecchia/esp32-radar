@@ -192,7 +192,7 @@ L'**invocazione iniziale** del **parser** viene eseguita **solamente** all'arriv
 
 Invece, lo stesso messaggio, nella versione **radar2.html** dell'applicazione web, viene gestito direttamente dal **parser JSON ricorsivo** della pagina perchè si è utilizzata la sua particolarità di avere una **profondità di parsing** impostabile in base al  al **nome** della misura. In questo caso i campi  ```"tempSensor"```, ```"luxSensor``` e ```"radar"``` sono interpretati come oggetti e non come tipi primitivi e sono passati ad una funzione della command map che legge tutti i valori primitivi e li inserisce nella loro posizione di output nell'interfaccia grafica.
 
-L'**invocazione iniziale** del **parser** viene eseguita all'arrivo di **tutti i messaggi**, sia quelli in arrivo sul **topic di stato** che quelli in arrivo sul **topic di misura** mediante la funzione ```processJson(commandMap, data, [], ["tempSensor", "luxSensor", "radar"]);```, impostata con basePath = [] basePath = [], measures = ["tempSensor", "luxSensor", "radar"], cioè con path iniziale del parsing nullo e lista degli oggetti a profondità di parsing ridotta.
+L'**invocazione iniziale** del **parser** viene eseguita all'arrivo di **tutti i messaggi**, sia quelli in arrivo sul **topic di stato** che quelli in arrivo sul **topic di misura** mediante la funzione ```processJson(commandMap, data, [], ["tempSensor", "luxSensor", "radar"])```, impostata con basePath = [] basePath = [], measures = ["tempSensor", "luxSensor", "radar"], cioè con path iniziale del parsing nullo e lista degli oggetti a profondità di parsing ridotta.
 
 In **quest'ultimo caso** la **command map** che raccoglie tutte le callback che eseguono le azioni di parsing diventa:
 
