@@ -198,86 +198,86 @@ In **quest'ultimo caso** la **command map** che raccoglie tutte le callback che 
 
 ```js
 const commandMap = {
-			measures: {
-				radar: (value) =>{
-					console.log('radar ', value);
-					boardData[currBoardId].radarData = {
-						x: roundArrTo(getFieldIfExists(value,'x'), 2, 1000),
-						y: roundArrTo(getFieldIfExists(value,'y'), 2, 1000),
-						vel: roundArrTo(getFieldIfExists(value,'vel'), 2),
-						distres: roundArrTo(getFieldIfExists(value,'distres'), 2),
-						rot: boardData[currBoardId].radarData.rot
-					}
-				},
-				tempSensor: (value) =>{
-					console.log('tempSensor ', value);
-					boardData[currBoardId].tempData = {
-						temp: roundTo(getFieldIfExists(value,'temp'), 2),
-						press: roundTo(getFieldIfExists(value,'press'), 1),
-						hum: roundTo(getFieldIfExists(value,'hum'), 2),
-						gas: roundTo(getFieldIfExists(value,'gas'), 1),
-					}
-					let sensorDataElement = document.querySelector(`#sensorData-${currBoardId}`);
-					sensorDataElement.querySelector('.temp').innerText = `${boardData[currBoardId].tempData.temp} °C`;
-					sensorDataElement.querySelector('.press').innerText = `${boardData[currBoardId].tempData.press} Pa`;
-					sensorDataElement.querySelector('.hum').innerText = `${boardData[currBoardId].tempData.hum} %`;
-					sensorDataElement.querySelector('.gas').innerText = `${boardData[currBoardId].tempData.gas}`;
-				},
-				luxSensor: (value) =>{
-					console.log('luxSensor ', value);
-					boardData[currBoardId].luxData = {
-						visible: roundTo(getFieldIfExists(value,'visible'), 4),
-						infrared: roundTo(getFieldIfExists(value,'infrared'), 4),
-						total: roundTo(getFieldIfExists(value,'total'), 4)
-					}
-					let sensorDataElement = document.querySelector(`#sensorData-${currBoardId}`);
-					sensorDataElement.querySelector('.visible').innerText = `${boardData[currBoardId].luxData.visible} Lux`;
-					sensorDataElement.querySelector('.infrared').innerText = `${boardData[currBoardId].luxData.infrared} Lux`;
-					sensorDataElement.querySelector('.total').innerText = `${boardData[currBoardId].luxData.total} Lux`;
-				}
-			},
-			state: {
-				fw: (value) => {
-						console.log('Setting fw to', value);
-						boardData[currBoardId].fw = value;
-						let timestampElement = document.querySelector(`#timestamp-${currBoardId}`);
-						timestampElement.innerText = boardData[currBoardId].timestamp + "   -   FW version: " + boardData[currBoardId].fw;
-					},
-				polltime: (value) => {
-						console.log('Setting pollTime to', value);
-						setElem(currBoardId, "poll1", millisToTimeString(value), '.poll1');
-					},
-				servel: (value) => {
-						console.log('Setting servel to', value);
-						setElem(currBoardId, "servel", value, '.servel');
-					},
-				radarmode: (value) => {
-					console.log('Setting radarMode to', value)
-					value = "Inverti " + value;
-					setElem(currBoardId, "radarmode", value);
-				},
-				radareboot: () => {
-					console.log('Rebooting radar');
-					setElem(currBoardId, "radareboot", "Invia");
-				},
-				radarstate: (value) => {
-					console.log('radarstate');
-					value = "Inverti " + value;
-					setElem(currBoardId, "radarstate", value);
-				},
-			},
-			timestamp: (val) => {
-				boardData[currBoardId].timestamp = convertDateTimeToHumanReadable(val);
+	measures: {
+		radar: (value) =>{
+			console.log('radar ', value);
+			boardData[currBoardId].radarData = {
+				x: roundArrTo(getFieldIfExists(value,'x'), 2, 1000),
+				y: roundArrTo(getFieldIfExists(value,'y'), 2, 1000),
+				vel: roundArrTo(getFieldIfExists(value,'vel'), 2),
+				distres: roundArrTo(getFieldIfExists(value,'distres'), 2),
+				rot: boardData[currBoardId].radarData.rot
+			}
+		},
+		tempSensor: (value) =>{
+			console.log('tempSensor ', value);
+			boardData[currBoardId].tempData = {
+				temp: roundTo(getFieldIfExists(value,'temp'), 2),
+				press: roundTo(getFieldIfExists(value,'press'), 1),
+				hum: roundTo(getFieldIfExists(value,'hum'), 2),
+				gas: roundTo(getFieldIfExists(value,'gas'), 1),
+			}
+			let sensorDataElement = document.querySelector(`#sensorData-${currBoardId}`);
+			sensorDataElement.querySelector('.temp').innerText = `${boardData[currBoardId].tempData.temp} °C`;
+			sensorDataElement.querySelector('.press').innerText = `${boardData[currBoardId].tempData.press} Pa`;
+			sensorDataElement.querySelector('.hum').innerText = `${boardData[currBoardId].tempData.hum} %`;
+			sensorDataElement.querySelector('.gas').innerText = `${boardData[currBoardId].tempData.gas}`;
+		},
+		luxSensor: (value) =>{
+			console.log('luxSensor ', value);
+			boardData[currBoardId].luxData = {
+				visible: roundTo(getFieldIfExists(value,'visible'), 4),
+				infrared: roundTo(getFieldIfExists(value,'infrared'), 4),
+				total: roundTo(getFieldIfExists(value,'total'), 4)
+			}
+			let sensorDataElement = document.querySelector(`#sensorData-${currBoardId}`);
+			sensorDataElement.querySelector('.visible').innerText = `${boardData[currBoardId].luxData.visible} Lux`;
+			sensorDataElement.querySelector('.infrared').innerText = `${boardData[currBoardId].luxData.infrared} Lux`;
+			sensorDataElement.querySelector('.total').innerText = `${boardData[currBoardId].luxData.total} Lux`;
+		}
+	},
+	state: {
+		fw: (value) => {
+				console.log('Setting fw to', value);
+				boardData[currBoardId].fw = value;
 				let timestampElement = document.querySelector(`#timestamp-${currBoardId}`);
 				timestampElement.innerText = boardData[currBoardId].timestamp + "   -   FW version: " + boardData[currBoardId].fw;
 			},
-			boardID: (val) => {
-				console.log('boardID');
-				let elem = document.getElementById(`sensorData-${currBoardId}`);
-				let inputelem = elem.querySelector('.boardID');
-				inputelem.innerHTML = val;
+		polltime: (value) => {
+				console.log('Setting pollTime to', value);
+				setElem(currBoardId, "poll1", millisToTimeString(value), '.poll1');
 			},
-		};
+		servel: (value) => {
+				console.log('Setting servel to', value);
+				setElem(currBoardId, "servel", value, '.servel');
+			},
+		radarmode: (value) => {
+			console.log('Setting radarMode to', value)
+			value = "Inverti " + value;
+			setElem(currBoardId, "radarmode", value);
+		},
+		radareboot: () => {
+			console.log('Rebooting radar');
+			setElem(currBoardId, "radareboot", "Invia");
+		},
+		radarstate: (value) => {
+			console.log('radarstate');
+			value = "Inverti " + value;
+			setElem(currBoardId, "radarstate", value);
+		},
+	},
+	timestamp: (val) => {
+		boardData[currBoardId].timestamp = convertDateTimeToHumanReadable(val);
+		let timestampElement = document.querySelector(`#timestamp-${currBoardId}`);
+		timestampElement.innerText = boardData[currBoardId].timestamp + "   -   FW version: " + boardData[currBoardId].fw;
+	},
+	boardID: (val) => {
+		console.log('boardID');
+		let elem = document.getElementById(`sensorData-${currBoardId}`);
+		let inputelem = elem.querySelector('.boardID');
+		inputelem.innerHTML = val;
+	},
+};
 ```
 
 Sitografia:
