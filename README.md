@@ -3,7 +3,7 @@
 
 A school project to create a radar using ESP32, Adafruit LTR329 sensor, Hi-Link HLK-LD2450 radar and MicroPython.
 
-The project is devoloped in collaboration by professors and students of the school IIS "G.Marconi" of Civitavecchia (RM) Italy for the aspect of the SW design and by a young startup, the Alemax company (RM) Italy, for the aspect of the board and elctronic design.
+The project is devoloped in collaboration by professors and students of the school IIS "G.Marconi" of Civitavecchia (RM) - Italy for the aspect of the SW design and by a young startup, the Alemax company of Ladispoli (RM) - Italy, for the aspect of the board and elctronic design.
 
 This project includes a web page for remote monitoring and control. This is a screenshot of the page:
 
