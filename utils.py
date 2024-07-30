@@ -257,6 +257,41 @@ def update_ema(new_values, ema_values, alpha):
         ema_values[i] = alpha * new_values[i] + (1 - alpha) * ema_values[i]
     return ema_values
 
+def update_sliding_window_ma(sensor_data, window_size):
+    # Verifica se i dati dei sensori sono vuoti
+    if len(sensor_data) == 0:
+        raise ValueError("Sensor data should not be empty")
+    
+    # Numero di sensori (assumiamo che ogni campione abbia lo stesso numero di misurazioni di sensori)
+    num_sensors = len(sensor_data[0])
+    # Numero di campioni (lunghezza dell'array dei dati dei sensori)
+    num_samples = len(sensor_data)
+    
+    # Verifica che tutti i campioni abbiano lo stesso numero di misurazioni di sensori
+    if any(len(sample) != num_sensors for sample in sensor_data):
+        raise ValueError("All samples must have the same number of sensor measurements")
+    
+    # Verifica che la dimensione della finestra sia valida rispetto al numero di campioni
+    if window_size > num_samples:
+        raise ValueError("Window size must be less than or equal to the number of samples")
+    
+    # Inizializza le liste per memorizzare le medie mobili per ogni sensore
+    averages = [[] for _ in range(num_sensors)]
+    
+    # Calcola la media mobile per ciascun sensore
+    for sensor_idx in range(num_sensors):
+        # Calcola la somma iniziale della finestra per il sensore corrente
+        window_sum = sum(sensor_data[i][sensor_idx] for i in range(window_size))
+        # Aggiungi la media della prima finestra alla lista delle medie per il sensore corrente
+        averages[sensor_idx].append(window_sum / window_size)
+        
+        # Aggiorna la somma della finestra e calcola la media per ogni campione successivo
+        for i in range(window_size, num_samples):
+            window_sum += sensor_data[i][sensor_idx] - sensor_data[i - window_size][sensor_idx]
+            averages[sensor_idx].append(window_sum / window_size)
+    
+    return averages
+
 # Funzione per arrotondare ciascun valore a due cifre decimali
 def round_2(array):
     return [round(val, 2) for val in array]
