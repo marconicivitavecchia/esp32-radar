@@ -1,6 +1,9 @@
 class SimpleMovingMedianQuantile:
     def __init__(self, window_size, num_sensors, quantile):
         """
+        https://en.wikipedia.org/wiki/Median_filter#Worked_1D_example
+        https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/quantile.htm
+        
         Initialize the SimpleMovingMedian class.
 
         Parameters:

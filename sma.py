@@ -1,6 +1,8 @@
 class SimpleMovingAverage:
     def __init__(self, window_size, num_sensors):
         """
+        https://en.wikipedia.org/wiki/Moving_average#Simple_moving_average
+        
         Initialize the SimpleMovingAverage class.
 
         Parameters:
@@ -12,24 +14,7 @@ class SimpleMovingAverage:
         self.data_queues = [[] for _ in range(num_sensors)]
         self.sma_values = [0] * num_sensors
         self.sums = [0] * num_sensors
-    
-    def bisect_left(self, a, x, lo=0, hi=None):
-        if lo < 0:
-            raise ValueError('lo must be non-negative')
-        if hi is None:
-            hi = len(a)
-        while lo < hi:
-            mid = (lo + hi) // 2
-            if a[mid] < x:
-                lo = mid + 1
-            else:
-                hi = mid
-        return lo
-
-    def insort(self, a, x, lo=0, hi=None):
-        lo = self.bisect_left(a, x, lo, hi)
-        a.insert(lo, x)
-        
+           
     def update_sma(self, new_values):
         for i in range(self.num_sensors):
             if len(self.data_queues[i]) == self.window_size:

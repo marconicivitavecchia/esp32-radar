@@ -1,6 +1,8 @@
 class SimpleMovingMedian:
     def __init__(self, window_size, num_sensors):
         """
+        https://en.wikipedia.org/wiki/Median_filter#Worked_1D_example
+        
         Initialize the SimpleMovingMedian class.
 
         Parameters:

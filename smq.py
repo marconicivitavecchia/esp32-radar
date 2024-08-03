@@ -1,6 +1,8 @@
 class SimpleMovingQuantile:
     def __init__(self, window_size, num_sensors, quantile):
         """
+        https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/quantile.htm
+        
         Initialize the SimpleMovingQuantile class.
 
         Parameters:
