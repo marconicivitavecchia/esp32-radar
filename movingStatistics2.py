@@ -2,6 +2,7 @@ from sma import *
 from smm import *
 from smq import *
 from maxmin import *
+from smm_smq import *
 
 class MovingStatistics:
     def __init__(self, window_size, num_sensors, alpha=0.1, quantile=0.5, quantile_low=0.25, quantile_high=0.75):
@@ -13,8 +14,8 @@ class MovingStatistics:
         self.smm = SimpleMovingMedian(window_size, num_sensors)
         self.sma = SimpleMovingAverage(window_size, num_sensors)
         self.smq = SimpleMovingQuantile(window_size, num_sensors, quantile)
-        self.smq1 = SimpleMovingQuantile(window_size, num_sensors, quantile)
-        self.smq2 = SimpleMovingQuantile(window_size, num_sensors, quantile)
+        self.smq1 = SimpleMovingMedianQuantile(window_size, num_sensors, quantile)
+        self.smq2 = SimpleMovingMedianQuantile(window_size, num_sensors, quantile)
         self.maxmin = MovingMaxMin(window_size, num_sensors)        
 
     def update(self, new_values, stats_to_update):
@@ -51,9 +52,8 @@ class MovingStatistics:
         return self.ema_values.copy()
       
     def update_filter(self, new_values):    
-        median = self.smm.update_median(new_values)
-        q_low = self.smq1.update_quantile(new_values)
-        q_high = self.smq2.update_quantile(new_values)
+        [median, q_low] = self.smq1.update_median_quantile(new_values)
+        [median, q_high] = self.smq2.update_median_quantile(new_values)
 
         if median is None:
             raise ValueError("Median values must be calculated before filtering.")
