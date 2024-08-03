@@ -14,7 +14,7 @@ class MovingStatistics:
         self.smm = SimpleMovingMedian(window_size, num_sensors)
         self.sma = SimpleMovingAverage(window_size, num_sensors)
         self.smq = SimpleMovingQuantile(window_size, num_sensors, quantile)
-        self.smq1 = SimpleMovingMedianQuantile(window_size, num_sensors, quantile)
+        self.smq1 = SimpleMovingQuantile(window_size, num_sensors, quantile)
         self.smq2 = SimpleMovingMedianQuantile(window_size, num_sensors, quantile)
         self.maxmin = MovingMaxMin(window_size, num_sensors)        
 
@@ -52,7 +52,7 @@ class MovingStatistics:
         return self.ema_values.copy()
       
     def update_filter(self, new_values):    
-        [median, q_low] = self.smq1.update_median_quantile(new_values)
+        q_low = self.smq1.update_quantile(new_values)
         [median, q_high] = self.smq2.update_median_quantile(new_values)
 
         if median is None:
