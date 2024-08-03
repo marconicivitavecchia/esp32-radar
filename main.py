@@ -26,6 +26,7 @@ from collections import OrderedDict
 import json
 from serial_protocol import *
 from adafruit_ltr329_ltr303 import LTR329
+from movingStatistics2 import *
 
 S_ON = Pin(42, Pin.OUT) # PIN RADAR POWER MENAGEMENT
 S_ON.value(1)
@@ -339,10 +340,6 @@ else:
     lista_y = data.get('lista_y', [])
     lista_v = data.get('lista_v', [])
     lista_dr = data.get('lista_dr', [])
-    edelta = [0, 0, 0]
-    soglia = [0, 0, 0]
-    cdelta = [0, 0, 0]
-
 
 while not ok:
     try:
@@ -383,17 +380,32 @@ if not connect_and_subscribe(client1, MQTT_CMDTOPIC):
 
 time.sleep(0.5)
 #radarFW = readFW()
+#ema = MovingStatistics(window_size=10, num_sensors=3, alpha=0.125)
+filter_x = MovingStatistics(window_size=10, num_sensors=3, alpha=0.125, quantile=0.5, quantile_low=0.25, quantile_high=0.75)
+filter_y = MovingStatistics(window_size=10, num_sensors=3, alpha=0.125, quantile=0.5, quantile_low=0.25, quantile_high=0.75)
+filter_v = MovingStatistics(window_size=10, num_sensors=3, alpha=0.125, quantile=0.5, quantile_low=0.25, quantile_high=0.75)
+filter_dr = MovingStatistics(window_size=10, num_sensors=3, alpha=0.125, quantile=0.5, quantile_low=0.25, quantile_high=0.75)
+filterx = MovingStatistics(window_size=10, num_sensors=3, alpha=0.125, quantile=0.5, quantile_low=0.25, quantile_high=0.75)
 
 while True:
     try:
         if S_ON.value():
             data = radar.printTargets()
             if data is not None:
-                d = modulo_a(data.get('lista_x', []), data.get('lista_y', []))# campione P attuale
-                lista_v = update_ema(data.get('lista_v', []), lista_v, alpha)
-                lista_dr = update_ema(data.get('lista_dr', []), lista_dr, alpha)
-                update_ema(data.get('lista_x', []), lista_x, alpha)# stima candidata x
-                update_ema(data.get('lista_y', []), lista_y, alpha)# stima candidata y
+                #update_ema(data.get('lista_v', []), lista_v, alpha)
+                #update_ema(data.get('lista_dr', []), lista_dr, alpha)
+                #update_ema(data.get('lista_x', []), lista_x, alpha)# stima candidata x
+                #update_ema(data.get('lista_y', []), lista_y, alpha)# stima candidata y
+                lista_x = filter_x.update(data.get('lista_x', []), ['emafilter']).get('emafilter')
+                lista_y = filter_y.update(data.get('lista_y', []), ['emafilter']).get('emafilter')
+                lista_v = filter_v.update(data.get('lista_v', []), ['emafilter']).get('emafilter')
+                lista_dr = filter_dr.update(data.get('lista_dr', []), ['emafilter']).get('emafilter')
+                
+                #lista_x = filter_x.update(data.get('lista_x', []), ['smafilter']).get('smafilter')
+                #lista_y = filter_y.update(data.get('lista_y', []), ['smafilter']).get('smafilter')
+                #lista_v = filter_v.update(data.get('lista_v', []), ['smafilter']).get('smafilter')
+                #lista_dr = filter_dr.update(data.get('lista_dr', []), ['smafilter']).get('smafilter')
+
         else:
             lista_x = [0, 0, 0]
             lista_y = [0, 0, 0]
