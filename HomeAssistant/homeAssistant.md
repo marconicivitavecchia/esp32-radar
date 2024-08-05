@@ -105,7 +105,7 @@ mqtt:
 ## **Integrazione di una griglia di monitoraggio esterna**
 
 
-La **griglia di monitoraggio** può essere integrata nella dashboard di Home Assistant utilizzando la** Lovelace iframe card**. Questa card ti permette di inserire una pagina web esterna (come il file HTML che abbiamo creato) direttamente nella dashboard di Home Assistant.
+La **griglia di monitoraggio** può essere integrata nella dashboard di Home Assistant utilizzando la **Lovelace iframe card**. Questa card ti permette di inserire una pagina web esterna (come il file HTML che abbiamo creato) direttamente nella dashboard di Home Assistant.
 
 ### **Passaggi per Integrare la Pagina HTML nella Dashboard di Home Assistant**
 
