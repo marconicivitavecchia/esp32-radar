@@ -13,63 +13,86 @@ Per configurare Home Assistant per ricevere e visualizzare queste misure tramite
 Esempio di impostazione del file ```configuration.yaml```:
 
 ```yaml
+
+# Loads default set of integrations. Do not remove.
+default_config:
+
+# Load frontend themes from the themes folder
+frontend:
+  themes: !include_dir_merge_named themes
+
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml
+
 mqtt:       
     sensor:
       - name: "Temperature"
-        unique_id: "{{ value_json.boardID }}"
+        unique_id: "{{ value_json.boardID }}.temp"
         state_topic: "radar/misure"
         value_template: "{{ value_json.measures.tempSensor.temp }}"
         unit_of_measurement: "°C"
         
       - name: "Pressure"
+        unique_id: "{{ value_json.boardID }}.press"
         state_topic: "radar/misure"
         value_template: "{{ value_json.measures.tempSensor.press }}"
         unit_of_measurement: "hPa"
     
       - name: "Humidity"
+        unique_id: "{{ value_json.boardID }}.hum"
         state_topic: "radar/misure"
         value_template: "{{ value_json.measures.tempSensor.hum }}"
         unit_of_measurement: "%"
     
       - name: "Gas"
+        unique_id: "{{ value_json.boardID }}.gas"
         state_topic: "radar/misure"
         value_template: "{{ value_json.measures.tempSensor.gas }}"
         unit_of_measurement: "ppm"
     
       - name: "Visible Light"
+        unique_id: "{{ value_json.boardID }}.visible"
         state_topic: "radar/misure"
         value_template: "{{ value_json.measures.luxSensor.visible }}"
         unit_of_measurement: "lx"
     
       - name: "Infrared Light"
+        unique_id: "{{ value_json.boardID }}.infrared"
         state_topic: "radar/misure"
         value_template: "{{ value_json.measures.luxSensor.infrared }}"
         unit_of_measurement: "lx"
     
       - name: "Total Light"
+        unique_id: "{{ value_json.boardID }}.total"
         state_topic: "radar/misure"
         value_template: "{{ value_json.measures.luxSensor.total }}"
         unit_of_measurement: "lx"
     
       - name: "Radar X"
+        unique_id: "{{ value_json.boardID }}.radar.x"
         state_topic: "radar/misure"
         value_template: "{{ value_json.measures.radar.x[0] }}"
         unit_of_measurement: "m"
     
       - name: "Radar Y"
         state_topic: "radar/misure"
+        unique_id: "{{ value_json.boardID }}.radar.y"
         value_template: "{{ value_json.measures.radar.y[0] }}"
         unit_of_measurement: "mm"
     
       - name: "Radar Velocity"
+        unique_id: "{{ value_json.boardID }}.radar.vel"
         state_topic: "radar/misure"
         value_template: "{{ value_json.measures.radar.vel[0] }}"
         unit_of_measurement: "cm/s"
     
       - name: "Radar Distance"
+        unique_id: "{{ value_json.boardID }}.radar.distres"
         state_topic: "radar/misure"
         value_template: "{{ value_json.measures.radar.distres[0] }}"
         unit_of_measurement: "mm"
+
 ```
 
 ## **Integrazione di una griglia di monitoraggio esterna**
