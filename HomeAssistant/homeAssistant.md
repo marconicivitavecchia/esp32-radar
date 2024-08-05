@@ -7,8 +7,15 @@ Per configurare Home Assistant per ricevere e visualizzare queste misure tramite
 
 ## **Passaggi da seguire**
 
-1. **Configurare il broker** MQTT in Home Assistant: assicurati che Home Assistant sia configurato per connettersi al tuo broker MQTT.
-2. **Creare le entità** dei sensori MQTT con un template: configura i sensori MQTT in Home Assistant per per eseguire il parsing del payload JSON.
+Configurare MQTT tramite l'interfaccia utente di Home Assistant
+1. Aggiungere l'Integrazione MQTT:
+    - Vai su Configurazione nel menu principale.
+    - Clicca su Dispositivi e Servizi.
+    - Clicca su Aggiungi Integrazione in basso a destra.
+    - Cerca e seleziona MQTT.
+    - Inserisci i dettagli del broker (indirizzo, porta, nome utente e password).
+2. Configurare Sensori MQTT in configuration.yaml:
+    - Aggiungi la configurazione dei sensori MQTT nel file configuration.yaml sotto la sezione sensor:.
 
 Esempio di impostazione del file ```configuration.yaml```:
 
