@@ -131,7 +131,7 @@ views:
           - entity: sensor.humidity
           - entity: sensor.infrared_light
           - entity: sensor.pressure
-          - entity: sensor.temperature_2
+          - entity: sensor.temperature
           - entity: sensor.total_light
           - entity: sensor.visible_light
   - title: Monitoraggio radar
