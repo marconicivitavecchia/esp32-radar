@@ -112,7 +112,7 @@ La **griglia di monitoraggio** può essere integrata nella dashboard di Home Ass
 1. Pubblica il File HTML su un server web. Puoi ospitare questo file:
     - su un server web locale caricando i file in una cartella con nome ```www``` posta dentro la cartella ```homeassistant``` che contiene il file principale di configurazione ```configuration.yaml``` 
     - su un servizio di hosting di pagine web esterno raggiungibile dal server homeassistant
-2. cliccare sulla matita in alto a destra di una delle plancie (dashboard) per attivare la funzione di modifica
+2. cliccare sulla matita in alto a destra di una delle plancie (dashboard) per attivare la funzione di modifica con cui si possono gestire le schede esistenti creandole, cancellandole e modificandone la visibilità
 3. cliccare sui tre punti in alto a destra da cui si può scegliere tra:
     - delezionare le entità non utilizzate
     - fa partire un editor di configurazione testuale con cui modifcare gli oggetti inclusi nella plancia
