@@ -153,7 +153,7 @@ L'**obiettivo** è integrare la griglia del radar come **iframe** che occupa una
  2. cliccare sulla matita in alto a destra di una delle plancie (dashboard) per attivare la funzione di modifica con cui si possono gestire le schede esistenti creandole, cancellandole e modificandone la visibilità
  3. cliccare sui tre punti in alto a destra da cui e scegliere gestire le plancie esistenti
  4. premere il pulsante in basso a destra per creare una nuova plancia
- 5. selezionere la voce "Includi una pagina web come plancia" per includere la pagina della griglia ```radar.html``` o ```radar2.html``` nella plancia sotto forma di **iframe** incollando il percorso dell'uno o dell'altro similmente a ```https://elezioni.marconicloud.it/local/radar2.html```, dove local corrisponde alla cartella www dove sono conservati i file da pubblicare, se pubblicati localmente.
+ 5. selezionere la voce "Includi una pagina web come plancia" per includere la pagina della griglia ```radar.html``` o ```radar2.html``` nella plancia sotto forma di **iframe** incollando il percorso dell'uno o dell'altro similmente a ```https://elezioni.marconicloud.it/local/radar2.html```, dove local corrisponde alla cartella ```www``` dove sono conservati i file da pubblicare, se pubblicati localmente.
 
 **Sitografia**:
 - chatGPT per integrazione con Home Assistant
