@@ -99,7 +99,6 @@ mqtt:
         state_topic: "radar/misure"
         value_template: "{{ value_json.measures.radar.distres[0] }}"
         unit_of_measurement: "mm"
-
 ```
 
 ## **Integrazione di una griglia di monitoraggio esterna**
@@ -107,7 +106,9 @@ mqtt:
 
 La **griglia di monitoraggio** può essere integrata nella dashboard di Home Assistant utilizzando la **Lovelace iframe card**. Questa card ti permette di inserire una pagina web esterna (come il file HTML che abbiamo creato) direttamente nella dashboard di Home Assistant.
 
-### **Passaggi per Integrare la Pagina HTML nella Dashboard di Home Assistant**
+### **Passaggi per integrare misure e griglia nella Dashboard di Home Assistant**
+
+L'**obiettivo** è integrare un set di misure e la griglia del radar in due **schede** della stessa **plancia** (dashboard).
 
 1. Pubblica il File HTML su un server web. Puoi ospitare questo file:
     - su un server web locale caricando i file in una cartella con nome ```www``` posta dentro la cartella ```homeassistant``` che contiene il file principale di configurazione ```configuration.yaml``` 
@@ -120,127 +121,17 @@ La **griglia di monitoraggio** può essere integrata nella dashboard di Home Ass
     - gestire le risorse esistenti creandole, cancellandole e modificandone la visibilità
 4. Nel menù di configurazione testuale inserire il codice seguente che sostanzialmente genera due schede, una con le misure dei sensori e una con la iframe della griglia del radar
 
-```yaml
-views:
-  - title: Home
-    icon: mdi:account
-    cards:
-      - type: entities
-        entities:
-          - entity: sensor.gas
-          - entity: sensor.humidity
-          - entity: sensor.infrared_light
-          - entity: sensor.pressure
-          - entity: sensor.temperature_2
-          - entity: sensor.total_light
-          - entity: sensor.visible_light
-  - title: Monitoraggio radar
-    path: monitoraggio-radar
-    cards:
-      - type: iframe
-        url: https://elezioni.marconicloud.it/local/radar2.html
-        aspect_ratio: 100%
-        title: Monitoraggio radar
-```
+### **Passaggi per integrare la griglia nella Dashboard di Home Assistant**
 
-Oppure aggiungi l'URL del file ```radar2.html```, fornito nella cartella web del progetto, alla tua configurazione di Lovelace usando un'iframe card.
+L'**obiettivo** è integrare la griglia del radar come **iframe** che occupa **plancia** (dashboard).
 
-```yaml
-# ui-lovelace.yaml
-title: Home
-views:
-  - title: Dashboard
-    cards:
-      - type: iframe
-        url: "http://your_local_server/radar2.html"
-        aspect_ratio: 100%
-        title: Radar Coordinate Display
-```
-
-## **Integrazione di una griglia di monitoraggio interna**
-
-
-La **griglia di monitoraggio** può essere integrata nella dashboard di Home Assistant utilizzando la** Lovelace iframe card**. Questa card ti permette di inserire una pagina web pubblicata da un web service interno alla piattaforma Home Assistant.
-
-Crea una **Lovelace Custom Card** usando una ```canvas-gauge-card``` per visualizzare i dati.
-
-
-```yaml
-# configuration.yaml
-sensor:
-  - platform: mqtt
-    name: "Radar X"
-    state_topic: "your_topic/measures"
-    value_template: "{{ value_json.measures.radar.x }}"
-    unit_of_measurement: "m"
-
-  - platform: mqtt
-    name: "Radar Y"
-    state_topic: "your_topic/measures"
-    value_template: "{{ value_json.measures.radar.y }}"
-    unit_of_measurement: "m"
-
-lovelace:
-  mode: yaml
-  resources:
-    - url: /hacsfiles/canvas-gauge-card/canvas-gauge-card.js
-      type: module
-```
-
-**Aggiungi la Custom Card in Lovelace**: modifica la tua configurazione di Lovelace per includere una custom card:
-
-```yaml
-# ui-lovelace.yaml
-title: Home
-views:
-  - title: Dashboard
-    cards:
-      - type: custom:canvas-gauge-card
-        entity: sensor.radar_x
-        card_height: 100
-        name: Radar X
-        units: "m"
-        min_value: 0
-        max_value: 100
-        style: |
-          :host {
-            display: flex;
-            justify-content: center;
-          }
-        gauges:
-          - type: "radial-gauge"
-            title: "X Coordinate"
-            value: sensor.radar_x
-            width: 200
-            height: 200
-            minValue: 0
-            maxValue: 100
-            majorTicks: ["0","20","40","60","80","100"]
-            highlights: [{"from": 80, "to": 100, "color": "rgba(255, 30, 0, .75)"}]
-
-      - type: custom:canvas-gauge-card
-        entity: sensor.radar_y
-        card_height: 100
-        name: Radar Y
-        units: "m"
-        min_value: 0
-        max_value: 100
-        style: |
-          :host {
-            display: flex;
-            justify-content: center;
-          }
-        gauges:
-          - type: "radial-gauge"
-            title: "Y Coordinate"
-            value: sensor.radar_y
-            width: 200
-            height: 200
-            minValue: 0
-            maxValue: 100
-            majorTicks: ["0","20","40","60","80","100"]
-            highlights: [{"from": 80, "to": 100, "color": "rgba(255, 30, 0, .75)"}]
-```
+ 1. Pubblica il File HTML su un server web. Puoi ospitare questo file:
+    - su un server web locale caricando i file in una cartella con nome ```www``` posta dentro la cartella ```homeassistant``` che contiene il file principale di configurazione ```configuration.yaml``` 
+    - su un servizio di hosting di pagine web esterno raggiungibile dal server homeassistant
+ 2. cliccare sulla matita in alto a destra di una delle plancie (dashboard) per attivare la funzione di modifica con cui si possono gestire le schede esistenti creandole, cancellandole e modificandone la visibilità
+ 3. cliccare sui tre punti in alto a destra da cui e scegliere gestire le plancie esistenti
+ 4. premere il pulsante in basso a destra per creare una nuova plancia
+ 5. selezionere la voce "Includi una pagina web come plancia" per includere la pagina della griglia ```radar.html``` o ```radar2.html``` nella plancia sotto forma di **iframe**.
 
 Sitografia:
 - chatGPT per integrazione con Home Assistant
