@@ -20,7 +20,6 @@ Configurare MQTT tramite l'interfaccia utente di Home Assistant
 Esempio di impostazione del file ```configuration.yaml```:
 
 ```yaml
-
 # Loads default set of integrations. Do not remove.
 default_config:
 
@@ -120,6 +119,29 @@ L'**obiettivo** è integrare un set di misure e la griglia del radar in due **sc
     - gestire le plancie esistenti creandole, cancellandole e modificandone la visibilità
     - gestire le risorse esistenti creandole, cancellandole e modificandone la visibilità
 4. Nel menù di configurazione testuale inserire il codice seguente che sostanzialmente genera due schede, una con le misure dei sensori e una con la iframe della griglia del radar
+
+```yaml
+views:
+  - title: Home
+    icon: mdi:account
+    cards:
+      - type: entities
+        entities:
+          - entity: sensor.gas
+          - entity: sensor.humidity
+          - entity: sensor.infrared_light
+          - entity: sensor.pressure
+          - entity: sensor.temperature_2
+          - entity: sensor.total_light
+          - entity: sensor.visible_light
+  - title: Monitoraggio radar
+    path: monitoraggio-radar
+    cards:
+      - type: iframe
+        url: https://elezioni.marconicloud.it/local/radar2.html
+        aspect_ratio: 100%
+        title: Monitoraggio radar
+```
 
 ### **Passaggi per integrare la griglia nella Dashboard di Home Assistant**
 
