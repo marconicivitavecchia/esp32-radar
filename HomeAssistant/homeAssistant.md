@@ -123,7 +123,7 @@ L'**obiettivo** è integrare un set di misure e la griglia del radar in due **sc
 
 ### **Passaggi per integrare la griglia nella Dashboard di Home Assistant**
 
-L'**obiettivo** è integrare la griglia del radar come **iframe** che occupa **plancia** (dashboard).
+L'**obiettivo** è integrare la griglia del radar come **iframe** che occupa una intera **plancia** (dashboard).
 
  1. Pubblica il File HTML su un server web. Puoi ospitare questo file:
     - su un server web locale caricando i file in una cartella con nome ```www``` posta dentro la cartella ```homeassistant``` che contiene il file principale di configurazione ```configuration.yaml``` 
