@@ -118,19 +118,29 @@ La **griglia di monitoraggio** può essere integrata nella dashboard di Home Ass
     - fa partire un editor di configurazione testuale con cui modifcare gli oggetti inclusi nella plancia
     - gestire le plancie esistenti creandole, cancellandole e modificandone la visibilità
     - gestire le risorse esistenti creandole, cancellandole e modificandone la visibilità
-
-Aggiungi l'URL del file ```radar.html```, fornito nella cartella web del progetto, alla tua configurazione di Lovelace usando un'iframe card.
+4. Nel menù di configurazione testuale ineserire il codice seguente che sostanzialmente genera due schede, una con le misure dei sensori e una con la iframe della griglia del radar
 
 ```yaml
-# ui-lovelace.yaml
-title: Home
 views:
-  - title: Dashboard
+  - title: Home
+    icon: mdi:account
+    cards:
+      - type: entities
+        entities:
+          - entity: sensor.gas
+          - entity: sensor.humidity
+          - entity: sensor.infrared_light
+          - entity: sensor.pressure
+          - entity: sensor.temperature_2
+          - entity: sensor.total_light
+          - entity: sensor.visible_light
+  - title: Monitoraggio radar
+    path: monitoraggio-radar
     cards:
       - type: iframe
-        url: "http://your_local_server/radar.html"
+        url: https://elezioni.marconicloud.it/local/radar2.html
         aspect_ratio: 100%
-        title: Radar Coordinate Display
+        title: Monitoraggio radar
 ```
 
 Oppure aggiungi l'URL del file ```radar2.html```, fornito nella cartella web del progetto, alla tua configurazione di Lovelace usando un'iframe card.
