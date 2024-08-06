@@ -109,8 +109,15 @@ La **griglia di monitoraggio** può essere integrata nella dashboard di Home Ass
 
 ### **Passaggi per Integrare la Pagina HTML nella Dashboard di Home Assistant**
 
-1. Pubblica il File HTML: assicurati che il file HTML sia accessibile tramite un server web. Puoi ospitare questo file su un server web locale o su un servizio di hosting di file.
-2. Usa una iframe Card in Lovelace: configura una card iframe in Lovelace per includere la pagina HTML.
+1. Pubblica il File HTML su un server web. Puoi ospitare questo file:
+    - su un server web locale caricando i file in una cartella con nome ```www``` posta dentro la cartella ```homeassistant``` che contiene il file principale di configurazione ```configuration.yaml``` 
+    - su un servizio di hosting di pagine web esterno raggiungibile dal server homeassistant
+2. cliccare sulla matita in alto a destra di una delle plancie (dashboard) per attivare la funzione di modifica
+3. cliccare sui tre punti in alto a destra da cui si può scegliere tra:
+    - delezionare le entità non utilizzate
+    - fa partire un editor di configurazione testuale con cui modifcare gli oggetti inclusi nella plancia
+    - gestire le plancie esistenti creandole, cancellandole e modificandone la visibilità
+    - gestire le risorse esistenti creandole, cancellandole e modificandone la visibilità
 
 Aggiungi l'URL del file ```radar.html```, fornito nella cartella web del progetto, alla tua configurazione di Lovelace usando un'iframe card.
 
