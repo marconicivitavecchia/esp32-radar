@@ -118,7 +118,7 @@ La **griglia di monitoraggio** può essere integrata nella dashboard di Home Ass
     - fa partire un editor di configurazione testuale con cui modifcare gli oggetti inclusi nella plancia
     - gestire le plancie esistenti creandole, cancellandole e modificandone la visibilità
     - gestire le risorse esistenti creandole, cancellandole e modificandone la visibilità
-4. Nel menù di configurazione testuale ineserire il codice seguente che sostanzialmente genera due schede, una con le misure dei sensori e una con la iframe della griglia del radar
+4. Nel menù di configurazione testuale inserire il codice seguente che sostanzialmente genera due schede, una con le misure dei sensori e una con la iframe della griglia del radar
 
 ```yaml
 views:
