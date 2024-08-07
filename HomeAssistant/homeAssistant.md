@@ -114,7 +114,7 @@ L'**obiettivo** è integrare un set di misure e la griglia del radar in due **sc
     - su un servizio di hosting di pagine web esterno raggiungibile dal server homeassistant
 2. cliccare sulla matita in alto a destra di una delle plancie (dashboard) per attivare la funzione di modifica con cui si possono gestire le schede esistenti creandole, cancellandole e modificandone la visibilità
 3. cliccare sui tre punti in alto a destra da cui si può scegliere tra:
-    - delezionare le entità non utilizzate
+    - selezionare le entità da utilizzare
     - fa partire un editor di configurazione testuale con cui modifcare gli oggetti inclusi nella plancia
     - gestire le plancie esistenti creandole, cancellandole e modificandone la visibilità
     - gestire le risorse esistenti creandole, cancellandole e modificandone la visibilità
