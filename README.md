@@ -33,11 +33,11 @@ The board is a prototype close to commercialization by the company Alemax of Lad
 
 Rename `config-example.py` into `config.py` and adjust the values according to your needs.
 
-**Sitografia**:
-- https://github.com/sebastianomelita/ArduinoBareMetal/blob/master/sensornetworkshort.md#reti-di-sensori-e-attuatori
-
-
 - [Gestione dei messaggi MQTT](mqtt_messages_logic.md)
 - [Parser JSON](json_parser.md)
 - [Integrazione con EspHome](/esphome/esphome.md)
 - [Integrazione con HomeAssistant](/HomeAssistant/homeAssistant.md)
+
+>**Sitografia**:
+- https://github.com/sebastianomelita/ArduinoBareMetal/blob/master/sensornetworkshort.md#reti-di-sensori-e-attuatori
+
