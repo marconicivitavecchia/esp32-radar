@@ -165,5 +165,6 @@ L'**obiettivo** è integrare la griglia del radar come **iframe** che occupa una
 - chatGPT per integrazione con Home Assistant
 - https://github.com/covrig/homeassistant-iframe-card
 - https://www.home-assistant.io/dashboards/
+- https://github.com/sebastianomelita/ArduinoBareMetal/blob/master/sensornetworkshort.md#reti-di-sensori-e-attuatori
   
 > [Ritorna alla pagina principale](/README.md)
