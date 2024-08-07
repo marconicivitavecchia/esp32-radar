@@ -143,9 +143,9 @@ views:
         title: Monitoraggio radar
 ```
 
-<img src="img/card1.png" alt="alt text" width="1000">
+<img src="/img/card1.png" alt="alt text" width="1000">
 
-<img src="img/card2.png" alt="alt text" width="1000">
+<img src="/img/card2.png" alt="alt text" width="1000">
 
 ### **Passaggi per integrare la griglia nella Dashboard di Home Assistant**
 
@@ -159,7 +159,7 @@ L'**obiettivo** è integrare la griglia del radar come **iframe** che occupa una
  4. premere il pulsante in basso a destra per creare una nuova plancia
  5. selezionere la voce "Includi una pagina web come plancia" per includere la pagina della griglia ```radar.html``` o ```radar2.html``` nella plancia sotto forma di **iframe** incollando il percorso dell'uno o dell'altro similmente a ```https://elezioni.marconicloud.it/local/radar2.html```, dove local corrisponde alla cartella ```www``` dove sono conservati i file da pubblicare, se pubblicati localmente.
 
-<img src="img/dashboard1.png" alt="alt text" width="1000">
+<img src="/img/dashboard1.png" alt="alt text" width="1000">
 
 **Sitografia**:
 - chatGPT per integrazione con Home Assistant
