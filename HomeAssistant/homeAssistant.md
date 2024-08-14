@@ -169,35 +169,3 @@ L'**obiettivo** è integrare la griglia del radar come **iframe** che occupa una
   
 > [Ritorna alla pagina principale](/README.md)
 
-Hai ragione, c'è stata una contraddizione nel mio messaggio precedente riguardo al nucleare. Permettimi di chiarire la situazione.
-
-### Contributi Pubblici e Sovvenzioni per Impianti Nucleari
-
-Il finanziamento e le sovvenzioni per gli impianti nucleari possono variare notevolmente a seconda del contesto politico e delle politiche energetiche di ciascun paese. Ecco una panoramica più precisa:
-
-1. **Costo Iniziale del Nucleare**: 
-   - Gli impianti nucleari hanno un costo iniziale molto elevato (5 - 9 miliardi di euro per GW). Questi costi includono la costruzione, la sicurezza, e le regolazioni necessarie.
-
-2. **Sovvenzioni e Contributi Pubblici**:
-   - **Finanziamenti e Sussidi**: È comune che i progetti nucleari ricevano un significativo supporto pubblico. Le stime indicano che il finanziamento pubblico potrebbe coprire tra il 30% e il 50% del costo iniziale. Questo supporto può venire sotto forma di prestiti a lungo termine, garanzie sui prestiti, o incentivi fiscali.
-   - **Basso Supporto Sovvenzionato**: In alcuni casi, il supporto diretto può essere relativamente basso rispetto ad altre fonti di energia come il solare e l’eolico, che spesso ricevono sovvenzioni dirette più alte per promuovere la transizione verso fonti di energia rinnovabile.
-
-### Considerazioni Aggiuntive
-
-- **Variabilità**: Le percentuali di finanziamento e sussidi possono variare significativamente a seconda delle politiche locali e delle necessità di investimento nel settore energetico. Nei paesi con un forte impegno verso l'energia nucleare, il supporto pubblico può essere molto elevato, mentre in altri contesti potrebbe essere limitato.
-
-- **Rischi e Politiche**: Il nucleare presenta rischi particolari e costi di smaltimento elevati, che influenzano le decisioni di investimento e il livello di supporto pubblico. I governi possono decidere di supportare finanziariamente il nucleare per garantire la sicurezza energetica e ridurre le emissioni di carbonio, ma potrebbero essere più riluttanti a farlo rispetto alle energie rinnovabili che presentano meno rischi di lungo termine e benefici ambientali più immediati.
-
-### Tabella Aggiornata
-
-Per fornire un quadro più coerente:
-
-| Tipo di Impianto   | Profilo di Rischio                                   | Costo Iniziale per GW       | Tempo di Ammortamento | Costo di Smaltimento                                  | Costo Medio per kW       | Contributi Pubblici/Finanziamenti   |
-|--------------------|------------------------------------------------------|-----------------------------|-----------------------|------------------------------------------------------|--------------------------|-----------------------------------|
-| **Eolico**         | Medio (variazioni climatiche, impatto ambientale)    | 1.2 - 2 miliardi di euro    | 10 - 15 anni          | Basso-Medio (rimozione pale e fondazioni)            | 1.2 - 2 milioni €/MW     | 20-40% del costo iniziale          |
-| **Solare**         | Basso (tecnologia consolidata, impatto ambientale ridotto) | 0.5 - 1.5 miliardi di euro  | 7 - 12 anni           | Basso-Medio (riciclaggio dei pannelli)                | 0.5 - 1.5 milioni €/MW   | 30-60% del costo iniziale          |
-| **Nucleare**       | Alto (rischi di sicurezza, gestione delle scorie)    | 5 - 9 miliardi di euro      | 20 - 30 anni          | Molto Alto (gestione a lungo termine delle scorie e decommissioning) | 5 - 9 milioni €/MW       | 30-50% del costo iniziale          |
-| **Idroelettrico**  | Medio (rischi legati alla gestione dell'acqua)       | 1 - 5 miliardi di euro      | 15 - 20 anni          | Medio-Alto (smaltimento dighe, gestione ecosistema)   | 1 - 5 milioni €/MW       | 20-40% del costo iniziale          |
-| **Termico a Ciclo Combinato** | Medio (rischi ambientali, volatilità dei combustibili) | 0.8 - 1.5 miliardi di euro  | 5 - 10 anni           | Basso (smaltimento delle turbine e caldaie)           | 0.8 - 1.5 milioni €/MW   | 10-20% del costo iniziale          |
-
-Questa tabella fornisce un quadro coerente e aggiornato dei costi e dei contributi pubblici per i diversi tipi di impianti.
