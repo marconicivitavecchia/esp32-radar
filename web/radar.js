@@ -115,7 +115,7 @@ function connectToBroker() {
 		client.on('offline', (err) => {
 			console.error(`Error with MQTT broker ${brokerUrl}`);
 			// Handle error, optionally switch to the next broker
-			switchToNextBroker();
+			//switchToNextBroker();
 		});
 		
 		client.on('error', (error) => {
@@ -125,7 +125,7 @@ function connectToBroker() {
 		
 		client.on('close', () => {
 			console.log('Connessione MQTT chiusa');
-			//switchToNextBroker();
+			switchToNextBroker();
 		});
 		
 		client.on('message', (topic, message) => {
