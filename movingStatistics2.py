@@ -17,7 +17,13 @@ class MovingStatistics:
         self.smq1 = SimpleMovingQuantile(window_size, num_sensors, quantile)
         self.smq2 = SimpleMovingMedianQuantile(window_size, num_sensors, quantile)
         self.maxmin = MovingMaxMin(window_size, num_sensors)        
-
+    
+    def setNumSensors(self, num_sensors):
+        self.num_sensors = num_sensors
+        
+    def getNumSensors(self):
+        return self.num_sensors
+        
     def update(self, new_values, stats_to_update):
         results = {}
         

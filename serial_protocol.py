@@ -2,25 +2,162 @@ from machine import UART
 import binascii
 import time
 
-class Radar:
-    COMMAND_HEADER = b'\xfd\xfc\xfb\xfa'
-    COMMAND_TAIL = b'\x04\x03\x02\x01'
-    REPORT_HEADER = b'\xaa\xff\x03\x00'
-    REPORT_TAIL = b'\x55\xcc'
-
-
+class Radar:   
     def __init__(self, uart):
         self.uart = uart
         # Definizione delle costanti in MicroPython
-        COMMAND_HEADER = bytes.fromhex('FDFCFBFA')
-        COMMAND_TAIL = bytes.fromhex('04030201')
-        REPORT_HEADER = bytes.fromhex('AAFF0300')
-        REPORT_TAIL = bytes.fromhex('55CC')
+        self.COMMAND_HEADER = bytes.fromhex('FDFCFBFA')
+        self.COMMAND_TAIL = bytes.fromhex('04030201')
+        self.REPORT_HEADER = bytes.fromhex('AAFF0300')
+        self.REPORT_TAIL = bytes.fromhex('55CC')
         # Stampa per verificare che le variabili siano definite correttamente
-        print('COMMAND_HEADER:', COMMAND_HEADER)
-        print('COMMAND_TAIL:', COMMAND_TAIL)
-        print('REPORT_HEADER:', REPORT_HEADER)
-        print('REPORT_TAIL:', REPORT_TAIL)
+        print('COMMAND_HEADER:', self.COMMAND_HEADER)
+        print('COMMAND_TAIL:', self.COMMAND_TAIL)
+        print('REPORT_HEADER:', self.REPORT_HEADER)
+        print('REPORT_TAIL:', self.REPORT_TAIL)
+        
+        self.regions = [
+            {"enabled": 0, "narea": 1, "type": 0, "x0": 0, "y0": 0, "x1": 0, "y1": 0, "x2": 0, "y2": 0, "x3": 0, "y3": 0},
+            {"enabled": 0, "narea": 2, "type": 0, "x0": 0, "y0": 0, "x1": 0, "y1": 0, "x2": 0, "y2": 0, "x3": 0, "y3": 0},
+            {"enabled": 0, "narea": 3, "type": 0, "x0": 0, "y0": 0, "x1": 0, "y1": 0, "x2": 0, "y2": 0, "x3": 0, "y3": 0}
+        ]
+        self.state = 1
+        self.persons = [
+            {"x": 0.0, "y": 0.0},
+            {"x": 0.0, "y": 0.0},
+            {"x": 0.0, "y": 0.0},
+            {"x": 0.0, "y": 0.0},
+            {"x": 0.0, "y": 0.0}
+        ]
+        self.ntargets = [0.0, 0.0, 0.0]
+    
+    def get_regionsFromRAM(self):# 0x06
+        # Logica per processare i dati in risposta delle regioni 
+        result = {
+            'narea': [],
+            'type': [],
+            'enabled': [],
+            'x0': [],
+            'y0': [],
+            'x1': [],
+            'y1': [],
+        }
+        for i in range(3):  # Ciclo per 3 regioni
+            result['narea'].append(self.regions[i]["narea"])
+            result['type'].append(self.regions[i]["type"])
+            result['enabled'].append(self.regions[i]["enabled"])
+            result['x0'].append(self.regions[i]["x0"]/10)
+            result['y0'].append(self.regions[i]["y0"]/10)
+            result['x1'].append(self.regions[i]["x2"]/10)
+            result['y1'].append(self.regions[i]["y3"]/10)
+        return result
+    
+    def get_regionFromRAM(self, index):# 0x06
+        result = {
+            'narea': 0,
+            'type': 0,
+            'enabled': 0,
+            'x0': 0,
+            'y0': 0,
+            'x1': 0,
+            'y1': 0,
+        }
+        result['narea'] = self.regions[index]["narea"]
+        result['type'] = self.regions[index]["type"]
+        result['enabled'] = self.regions[index]["enabled"]
+        result['x0'] = self.regions[index]["x0"]/10
+        result['y0'] = self.regions[index]["y0"]/10
+        result['x1'] = self.regions[index]["x2"]/10
+        result['y1'] = self.regions[index]["y3"]/10
+        return result
+    
+    def set_region(self, v):# 0x04
+        """
+        v = {
+            'narea': 0,
+            'type': 0,
+            'x0': 0,
+            'y0': 0,
+            'x1': 0,
+            'y1': 0,
+        }
+        """
+        # modifica la sequenza memorizzata sul microcontrollore
+        index = int(v["narea"]) - 1
+
+        if index >= 0 and index < 3:
+            #self.regions[index] = v
+            self.regions[index]["narea"] = int(v["narea"])
+            self.regions[index]["type"] = int(v["type"])
+            self.regions[index]["enabled"] = int(v["enabled"])
+            self.regions[index]["x0"] = self.limit_value(int(float(v["x0"])*10))
+            self.regions[index]["y0"] = self.limit_value(int(float(v["y0"])*10))
+            self.regions[index]["x1"] = self.limit_value(int(float(v["x0"])*10))
+            self.regions[index]["y1"] = self.limit_value(int(float(v["y1"])*10))
+            self.regions[index]["x2"] = self.limit_value(int(float(v["x1"])*10))
+            self.regions[index]["y2"] = self.limit_value(int(float(v["y1"])*10))
+            self.regions[index]["x3"] = self.limit_value(int(float(v["x0"])*10))
+            self.regions[index]["y3"] = self.limit_value(int(float(v["y1"])*10))
+                 
+        #if not int(v["enabled"]):
+        #    self.regions[index]["type"] = 0x00
+        return self.regions
+    
+    def disable_region(self, narea): #0x02
+        index = int(narea) - 1
+        if 0 <= index <= 2:
+            index = narea - 1 # Indice array di dizionari
+            self.regions[index]["enabled"] = 0
+        return self.regions
+    
+    def enable_region(self, narea): #0x02
+        index = int(narea) - 1
+        if 0 <= index <= 2:
+            self.regions[index]["enabled"] = 1
+            self.set_region(self.get_regionFromRAM(index))
+        return self.regions
+        
+    def disable_all_regions(self): #0x02
+        for i in range(3):  
+            area = i + 1
+            self.disable_region(area)
+        return self.regions
+
+    def delete_all_regions(self): #0x02
+        self.regions = [
+            {"enabled": 0, "narea": 1, "type": 0, "x0": 0, "y0": 0, "x1": 0, "y1": 0, "x2": 0, "y2": 0, "x3": 0, "y3": 0},
+            {"enabled": 0, "narea": 2, "type": 0, "x0": 0, "y0": 0, "x1": 0, "y1": 0, "x2": 0, "y2": 0, "x3": 0, "y3": 0},
+            {"enabled": 0, "narea": 3, "type": 0, "x0": 0, "y0": 0, "x1": 0, "y1": 0, "x2": 0, "y2": 0, "x3": 0, "y3": 0}
+        ]
+        self.disable_all_regions()
+        self.set_region(self.get_regionFromRAM(0))
+        self.set_region(self.get_regionFromRAM(1))
+        self.set_region(self.get_regionFromRAM(2))
+        return self.regions
+    
+    def read_all_info(self, regions):
+        self.regions = regions
+        time.sleep(0.05)
+        #self.get_regions()# sovrascrive tutti i campi di regions tranne enabled!
+        #self.set_region(self.get_regionFromRAM(0))
+        #self.set_region(self.get_regionFromRAM(1))
+        #self.set_region(self.get_regionFromRAM(2))
+    
+    def get_stateFromRAM(self):
+        return self.state
+    
+    def set_reporting(self, report_format): #0x02
+        report_format = int(report_format)
+        possible_report_format = [1, 2, 3]
+        if report_format not in possible_report_format:
+            raise ValueError('The report value must be one of the following: 1, 2, 3')   
+        self.state = report_format
+        
+    def get_reporting(self):
+        return self.state
+    
+    def get_ntargetsFromRAM(self):    
+        return self.ntargets
     
     def to_hex_string(self, byte_list):
         # Funzione per convertire una lista di byte in una stringa esadecimale
@@ -425,15 +562,21 @@ class Radar:
                 return None
         # if the header and tail are not present the line is corrupted
         else: 
-            print("Serial port line corrupted - header or tail not present")
             return None
-
+    
+    def limit_value(self, valore):
+        return max(-127, min(128, valore))
+        
     def printTargets(self):
         try:
             all_target_values = self.read_radar_data()
             
             if all_target_values is None:
                 return
+            
+            #print(f'In mm: {all_target_values0} mm')
+            all_target_values = [x / 1000 for x in all_target_values]
+            #print(f'In m: {all_target_values} m')
 
             target1_x, target1_y, target1_speed, target1_distance_res, \
             target2_x, target2_y, target2_speed, target2_distance_res, \
@@ -456,21 +599,41 @@ class Radar:
             #print(f'Target 3 speed: {target3_speed} cm/s')
             #print(f'Target 3 distance res: {target3_distance_res} mm')
 
-            #print('-' * 30)
+            #print('-' * 30)get_reporting
             
             result = {
                 'lista_x': [target1_x, target2_x, target3_x],
                 'lista_y': [target1_y, target2_y, target3_y],
                 'lista_v': [target1_speed, target2_speed, target3_speed],
-                'lista_dr': [target1_distance_res, target2_distance_res, target3_distance_res]
+                'lista_dr': [target1_distance_res, target2_distance_res, target3_distance_res],
+                'ntarget': [0, 0, 0],
             }
-            
+             
+            nt = [0, 0, 0]  
+            for i in range(3):
+                v = self.get_regionFromRAM(i)
+                rect = [v['x0'], v['y0'], v['x1'], v['y1']]
+                for j in range(3):
+                    scaledX = result['lista_x'][j]
+                    scaledY = result['lista_y'][j]
+                    inside1 = scaledX > rect[0] and scaledX < rect[2] and scaledY > rect[3] and scaledY < rect[1]
+                    inside2 = scaledX > rect[2] and scaledX < rect[0] and scaledY > rect[1] and scaledY < rect[3]
+                    if ((inside1 or inside2) and self.state != 1):
+                        nt[i] = 1
+                    
+            self.ntargets = nt
+            result['ntarget'] = self.ntargets;
+            if self.state == 2:
+                result['lista_x'] = []
+                result['lista_y'] = []
             return result
-
+        
+    
         except KeyboardInterrupt:
             # Close the serial port on keyboard interrupt
-            ser.close()
+            self.uart.close()
             print("Serial port closed.")
+
 
 
 
