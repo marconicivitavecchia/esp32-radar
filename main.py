@@ -37,11 +37,11 @@ print("Configuring serial...")
 # Carica la configurazione all'avvio
 default_config = {
     'poll_time': 2000,
-    'serial_speed': 9600,
+    'serial_speed': 256000,
     'regions': [
-        {"enabled": 0, "narea": 0, "type": 0, "x0": 0, "y0": 0, "x1": 0, "y1": 0, "x2": 0, "y2": 0, "x3": 0, "y3": 0},
-        {"enabled": 0, "narea": 1, "type": 0, "x0": 0, "y0": 0, "x1": 0, "y1": 0, "x2": 0, "y2": 0, "x3": 0, "y3": 0},
-        {"enabled": 0, "narea": 2, "type": 0, "x0": 0, "y0": 0, "x1": 0, "y1": 0, "x2": 0, "y2": 0, "x3": 0, "y3": 0}
+        {"enabled": 0, "narea": 1, "type": 0, "shape": 0, "points":[]},
+        {"enabled": 0, "narea": 2, "type": 0, "shape": 0, "points":[]},
+        {"enabled": 0, "narea": 3, "type": 0, "shape": 0, "points":[]}
     ]
 }
 
@@ -160,8 +160,9 @@ print('Scan i2c bus...')
 #devices = i2c.scan()
 ##bme = #bme680_I2C(i2c=i2c, address=0x76)
 time.sleep(1)
-radar.read_all_info(radaregions)
-
+#radar.read_all_info(radaregions)
+radar.load_regions(radaregions)
+radar.set_reporting(int(config['radarmode']))
 # Partial JSON of the single states that are retrieved in PULL mode from the web interface
 # upon receipt of a status request command
 def pubStateAtt(att, val):
@@ -179,6 +180,7 @@ def pubStateAtt(att, val):
      client.publish(MQTT_STATETOPIC, message)
     
 def getAllState():
+     global radar
      reportype = radar.get_reporting()
      fwval = readFW()
      regions = radar.get_regionsFromRAM()
@@ -256,6 +258,7 @@ def scrivi_pollTime(valore):
 
 def scrivi_servel(valore):
     global radarvel
+    global config
     radarvel = int(valore)
     print(f"Scrivi servel a {valore}")
     config['serial_speed'] = radarvel
@@ -263,11 +266,15 @@ def scrivi_servel(valore):
     pubStateAtt("servel", val)
 
 def scrivi_radarMode(valore):
+    global config
     print(f"Scrivi radarMode a {valore}")
     radar.set_reporting(int(valore))
+    config['radarmode'] = int(valore)
+    save_config('config.json', config)
     leggi_radarMode()
 
 def scrivi_radarFactory(valore):
+    global config
     print(f"Scrivi radarFactory a {valore}")
     radar.restore_factory_settings()
     radarvel = 9600
@@ -275,30 +282,43 @@ def scrivi_radarFactory(valore):
     save_config('config.json', config)
     pubStateAtt("radarfactory", val)
 
+def scrivi_tipo_area(val):
+    global config
+    r = radar.set_filtermode_region(val)
+    config['regions'] = r
+    print('rrrrrr: ',r)
+    save_config('config.json', config)
+    leggi_regioni()
+    
 def disable_region(area): #0x02
+    global config
     r = radar.disable_region(area)
     config['regions'] = r
     save_config('config.json', config)
     leggi_regioni()
     
 def disable_all_region(): #0x02
+    global config
     r = radar.disable_all_regions()
     config['regions'] = r
     save_config('config.json', config)
     leggi_regioni()
 
-def delete_all_regions(val):    
-     r = radar.delete_all_regions()# imposta le regioni di default nel dispositivo
-     save_config('config.json', config)# imposta le regioni di default nella MCU 
-     leggi_regioni()
+def delete_all_regions(val):
+    global config
+    r = radar.delete_all_regions()# imposta le regioni di default nel dispositivo
+    save_config('config.json', config)# imposta le regioni di default nella MCU 
+    leggi_regioni()
      
 def enable_region(area): #0x02
+    global config
     r = radar.enable_region(area)# restituisce TUTTE le regioni sul dispositivo
     config['regions'] = r
     save_config('config.json', config)# sincronizza le regioni sulla MCU con quelle MODIFICATE sul dispositivo
     leggi_regioni()
 
 def scrivi_regioni(val):
+    global config
     print("Scrivi regioni")
     val2 = radar.set_region(val)# restituisce TUTTE le regioni sul dispositivo
     config['regions'] = val2
@@ -369,6 +389,7 @@ command_map = {
             "areadisable": disable_region,
             "areareset": delete_all_regions,
             "region": scrivi_regioni,
+            "areatype": scrivi_tipo_area,
         },
         "read": {# commands whose reception causes the sending of a system status
             "radarfw": leggi_radarfw,
