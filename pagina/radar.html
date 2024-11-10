@@ -19,13 +19,13 @@
 </head>
 <body>
 	<script>
-		const broker1 = 'wss://mqtt.example.com:8884'; // Sostituisci con l'URL del tuo broker MQTT e assicurati che utilizzi wss (WebSocket Secure) se necessario
-		const broker2 = 'ws://mqtt2.example.com:8083/mqtt';
+		const broker1 = 'wss://proxy1.marconicloud.it:8884'; // Sostituisci con l'URL del tuo broker MQTT e assicurati che utilizzi wss (WebSocket Secure) se necessario
+		const broker2 = 'ws://broker.emqx.io:8083/mqtt';
 		const pushtopic = 'radar/misure'; // Sostituisci con il tuo topic MQTT
 		const cmdtopic = 'radar/comandi'; // Sostituisci con il tuo topic MQTT
 		const statetopic = 'radar/stato'; // Sostituisci con il tuo topic MQTT
-		//const boardId = "radar-Alex64e833639008";
-		const boardId = "radar-f412fa4f7010";		
+		
+		const boardId = "radar-xxxxxx";		
 		
     </script>
 	<div class='grid-container'>
@@ -90,37 +90,26 @@
 			<input type="button" class="send button-blue" value="Invia">
 		</div> 
 		<div class='col-1 col-s-12' id='areatypesel'>
-			<div class="txt"><p >Tipo area</p></div>
+			<div class="txt"><p>Tipo area</p>
+			</div>
 			<select name="areatype" class="sel button-large">
 				<option value="0">Monitor</option>
 				<option value="1">Filter</option>
+				<option value="2">Crop</option>
 			</select>
-			<div id='iotstate'><input class="iotmsg button-text" type="text" value="IoT OFF"/></div>
-		</div>
-		<div class='col-2 col-s-12' id='areavertices'>
-			<div class="txt"><p >Vertici area</p></div>
-			<div class="button-container">
-				<label class="poll1 button-small">V1</label> 
-				<label class="poll1 button-small">V2</label> 
-			</div>
-			<div class="button-container">
-				<input class="poll1 button-small x0" type="text" />
-				<input class="poll1 button-small y0" type="text" />
-				<input class="poll1 button-small x1" type="text" />
-				<input class="poll1 button-small y1" type="text"/>
-			</div>
-			<div class="button-container" id='connstate'>
-				<input class="connmsg button-text" type="text" value="MQTT OFF"/>
-			</div>
+			<input type="button" class="send button-blue" value="Invia">
 		</div>
 		<div class='col-1 col-s-12' id='areasel'>
 			<div class="txt"><p>Seleziona area</p></div>
-				<select name="target" class="sel button-large">
-					<option value="1">Area 1</option>
-					<option value="2">Area 2</option>
-					<option value="3">Area 3</option>
-				</select>
-				<input class="send button-small button-blue" type="button" value="Invia"/>
+			<select name="target" class="sel button-large">
+				<option value="1">Area 1</option>
+				<option value="2">Area 2</option>
+				<option value="3">Area 3</option>
+				<option value="4">Area 4</option>
+				<option value="5">Area 5</option>
+				<option value="6">Area 6</option>
+			</select>
+			<input class="send button-small button-blue" type="button" value="Invia punti"/>
 		</div>
 		<div class='col-1 col-s-12' id='areareset'>
 			<div class="txt"><p >Cancella tutte</p></div>
@@ -132,7 +121,14 @@
 			<input type="text" class="txt" value="0">
 			<input type="button"  class="send button-blue" value="Invia">
 		</div> 
-		
+		<div class='col-2 col-s-12' id='areavertices'>
+			<div class="txt"><p>Indicatori di stato</p><br></div>
+
+			<div class="button-container" id='connstate'>
+				<div id='iotstate'><input class="iotmsg button-text" type="text" value="IoT OFF"/></div>
+				<input class="connmsg button-text" type="text" value="MQTT OFF"/>
+			</div>
+		</div>
 		<div class='col-12 col-s-12' id='txt-nulla' class='footer'><h2 class="footer">Monitoraggio radar</h2></div>	
 	</div>	
 	<script src="radar.js"></script>
