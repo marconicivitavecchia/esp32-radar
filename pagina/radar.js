@@ -12,47 +12,37 @@ var boardData = {
 					fw: [0, 0],
 					radarmode: 0,
 					regions: {
-						narea: [1, 2, 3],
-						ntarget: [0, 0, 0],
-						type: [0, 0, 0],
-						x0: [0, 0, 0],
-						y0: [0, 0, 0],
-						x1: [0, 0, 0],
-						y1: [0, 0, 0],
-						color: [[255, 0, 0, 127], [0, 255, 0, 127], [0, 0, 255, 127]],
-						enabled: [1, 1, 0],
+						narea: [1, 2, 3, 4, 5, 6],
+						ntarget: [0, 0, 0, 0, 0, 0],
+						shape: [0, 0, 0, 0, 0, 0],
+						type: [0, 0, 0, 0, 0, 0],
+						enabled: [1, 1, 0, 1, 1, 0],
 						selected: 1,
-						xnr0: [0, 0, 0],
-						ynr0: [0, 0, 0],
-						xnr1: [0, 0, 0],
-						ynr1: [0, 0, 0],
-						dar : [null, null, null],
+						polilines: [],
+						dar : [null, null, null, null, null, null],
 					}
-				},
-				
+				},	
 				/*
 				radarData: {
-					x: [0, 1, 0, 0, 0],
-					y: [2, 3, 0, 0, 0],
+					x: [0, 0, 0, 0, 0],
+					y: [0, 0, 0, 0, 0],
 					rot: 0,
 					fw: [0, 0],
-					radarmode: 3,
+					radarmode: 0,
 					regions: {
-						narea: [1, 2, 3],
-						ntarget: [1, 1, 0],
-						type: [0, 0, 0],
-						x0: [1, 2, 0],
-						y0: [4, 5, 0],
-						x1: [3, 4, 0],
-						y1: [2, 3, 0],
-						color: [[255, 0, 0, 127], [0, 255, 0, 127], [0, 0, 255, 127]],
-						enabled: [1, 1, 0],
-						selected: 0,
-						xnr0: [0, 0, 0],
-						ynr0: [0, 0, 0],
-						xnr1: [0, 0, 0],
-						ynr1: [0, 0, 0],
-						dar : [null, null, null],
+						narea: [1, 2, 3, 4, 5, 6],
+						ntarget: [0, 0, 0, 0, 0, 0],
+						shape: [0, 0, 0, 0, 0, 0],
+						type: [0, 0, 0, 0, 0, 0],
+						enabled: [1, 1, 0, 1, 1, 0],
+						selected: 1,
+						polilines: [
+							[[10, 20], [15, 25], [20, 30]],
+							[[30, 40], [35, 45], [40, 50]],
+							[[50, 60], [55, 65], [60, 70]],
+							[[70, 80], [75, 85], [80, 90]]
+						],
+						dar : [null, null, null, null, null, null],
 					}
 				},
 				*/
@@ -92,187 +82,921 @@ function alertUser(color){
 	}
 }
 
-class DragAndResize{
-    constructor(reg, width, height) {
-		this.dragging = false;  // Durata del timer in millisecondi
-		this.resizing = false;  // Funzione da eseguire al termine del timer
-		this.offsetX = 0;  
-        this.offsetY = 0;  
-        this.selectedCorner = null;  
-        this.rotated = false;  
-        this.region = reg;
-        this.rot = false;
-        this.rect = [0, 0, 0, 0];
-        this.width = width;
+class PolylineEditor {
+    constructor(points = null, width, height, defColor, label, radiusMeter) {
+		this.points = points || [];  // Se points è null, inizializza un array vuoto
+        if (!Array.isArray(this.points)) {
+            this.points = [];        // Assicura che this.points sia sempre un array
+        }
+        this.draggingIndex = -1;   // Indice del punto che si sta draggando
+        this.dragOffsetX = 0;      // Offset per il dragging
+        this.dragOffsetY = 0;
+        this.vertexRadius = 8;     // Raggio dei vertici per il rendering
+        this.snapThreshold = 15;   // Distanza entro la quale si può selezionare un vertice
+		this.width = width;
         this.height = height;
-		this.rect[0] = this.region[0];
-		this.rect[1] = this.region[1];
-		this.rect[2] = this.region[2];
-		this.rect[3] = this.region[3];
-		console.log("rect init "+this.rect);
+		this.mouseX;
+		this.mouseY;
+		this.editMode = true;   
+		this.isClosed = false;     // Flag per indicare se la curva è chiusa
+        this.mergeThreshold = 15;  // Distanza entro la quale unire i vertici
+		console.log("PolylineEditor: "+width+" - "+height);
+		// doppio click
+		this.lastClickTime = 0;          // per gestire il doppio click
+        this.doubleClickDelay = 300;     // millisecondi tra i click
+        this.lastClickPos = { x: 0, y: 0 }; // posizione dell'ultimo click
+		// drag
+		this.isDraggingWhole = false;    // flag per il drag dell'intera curva
+        this.dragStartX = 0;             // posizione iniziale per il drag
+        this.dragStartY = 0;
+		//colore ed etichetta
+		this.areaColor = color(0, 0, 255, 30);  // colore default blu semi-trasparente
+        this.label = "";  // etichetta/numero dell'area
+		this.setAreaColor(defColor);
+		this.setLabel(label);
+		//flag creazione rettangoli
+		this.isCreatingRect = false;  // flag per la creazione del rettangolo
+        this.rectStartPoint = null;   // punto iniziale del rettangolo
+		//mano libera
+		this.mode = 'freehand'; // 'freehand' o 'rectangle'
+		//this.setMode('rectangle');  // per creare rettangoli
+		//this.setMode('freehand');   // per tornare al disegno libero
+		// Oppure creare direttamente un rettangolo
+		//this.createRectangle(100, 100, 200, 150);
+		this.report = false;
+		this.radius = radiusMeter;
+		this.ratio = this.height/this.width*2;
+		this.enabled = false;
+    }
+
+	mapInverse(value, start2, stop2, start1, stop1) {
+		return (value - start2) * (stop1 - start1) / (stop2 - start2) + start1;
 	}
 
+	map2(value, start1, stop1, start2, stop2) {
+		return (value - start1) * (stop2 - start2) / (stop1 - start1) + start2;
+	}
+
+	setReport(yes){
+		if(yes){
+			this.report = true;
+		}else{
+			this.report = false;
+		}
+	}
+
+	approximateToRectangle() {
+		if (!this.isClosed || this.points.length < 3) return;
+	
+		// Salva colore e etichetta
+		let originalColor = this.areaColor;
+		let originalLabel = this.label;
+	
+		// Trova i limiti del bounding box
+		let minX = Math.min(...this.points.map(p => p.x));
+		let maxX = Math.max(...this.points.map(p => p.x));
+		let minY = Math.min(...this.points.map(p => p.y));
+		let maxY = Math.max(...this.points.map(p => p.y));
+	
+		// Crea i nuovi punti del rettangolo
+		this.points = [
+			{ x: minX, y: minY },
+			{ x: maxX, y: minY },
+			{ x: maxX, y: maxY },
+			{ x: minX, y: maxY }
+		];
+	
+		// Ripristina colore e etichetta
+		this.areaColor = originalColor;
+		this.label = originalLabel;
+		this.isClosed = true;
+	}
+
+	clearFigure() {
+		if (this.points.length > 0) {
+			console.log("Clearing figure");  // debug
+			this.points = [];
+			this.isClosed = false;
+			this.draggingIndex = -1;
+			this.isDraggingWhole = false;
+			//this.label = "";
+			//this.areaColor = color(0, 0, 255, 30);
+			this.isCreatingRect = false;
+			this.rectStartPoint = null;
+		}
+	}
+
+	// Metodi per gestire colore e etichetta
+	setAreaColor(r, g, b, a = 30) {
+        this.areaColor = color(r, g, b, a);
+    }
+
+    setLabel(label) {
+        this.label = label;
+    }
+
+    // Modifica savePoints per includere i nuovi attributi
+    savePoints() {
+        const saveData = {
+            points: this.points.map(p => ({x: p.x, y: p.y})),
+            isClosed: this.isClosed,
+            areaColor: {
+                r: red(this.areaColor),
+                g: green(this.areaColor),
+                b: blue(this.areaColor),
+                a: alpha(this.areaColor)
+            },
+            label: this.label
+        };
+        return saveData;
+    }
+
+    // Modifica loadPoints per caricare i nuovi attributi
+    loadPoints(saveData) {
+        if (!saveData || !Array.isArray(saveData.points)) {
+            console.error("Formato dati non valido");
+            return false;
+        }
+
+        try {
+            this.points = saveData.points.map(p => ({x: p.x, y: p.y}));
+            this.isClosed = saveData.isClosed;
+            
+            // Carica il colore se presente
+            if (saveData.areaColor) {
+                this.areaColor = color(
+                    saveData.areaColor.r,
+                    saveData.areaColor.g,
+                    saveData.areaColor.b,
+                    saveData.areaColor.a
+                );
+            }
+            
+            // Carica l'etichetta se presente
+            this.label = saveData.label || "";
+            
+            this.draggingIndex = -1;
+            this.isDraggingWhole = false;
+            return true;
+        } catch (error) {
+            console.error("Errore nel caricamento dei punti:", error);
+            return false;
+        }
+    }
+
+	startRectangle(x, y) {
+        this.points = [];  // pulisce punti esistenti
+        this.isCreatingRect = true;
+        this.rectStartPoint = { x: x, y: y };
+        this.points.push({ x: x, y: y }); // primo punto
+        // aggiungiamo temporaneamente gli altri punti
+        this.points.push({ x: x, y: y });
+        this.points.push({ x: x, y: y });
+        this.points.push({ x: x, y: y });
+    }
+
+    updateRectangle(x, y) {
+        if (!this.isCreatingRect) return;
+        
+        // Aggiorna i quattro punti del rettangolo
+        this.points[0] = { x: this.rectStartPoint.x, y: this.rectStartPoint.y };  // punto iniziale
+        this.points[1] = { x: x, y: this.rectStartPoint.y };                      // punto a destra
+        this.points[2] = { x: x, y: y };                                          // punto opposto
+        this.points[3] = { x: this.rectStartPoint.x, y: y };                      // punto a sinistra
+    }
+
+    finishRectangle() {
+        if (!this.isCreatingRect) return;
+        
+        this.isCreatingRect = false;
+        this.rectStartPoint = null;
+        this.isClosed = true;
+    }
+
+	createRectangle(x, y, width, height) {
+		this.points = [];
+		this.points.push({ x: x, y: y });                 // top-left
+		this.points.push({ x: x + width, y: y });         // top-right
+		this.points.push({ x: x + width, y: y + height}); // bottom-right
+		this.points.push({ x: x, y: y + height });        // bottom-left
+		this.isClosed = true;
+	}
+
+	setMode(mode) {
+        this.mode = mode;
+        this.points = [];  // opzionale: pulisce i punti esistenti
+        this.isClosed = false;
+        this.isCreatingRect = false;
+    }
+
+	// Verifica se la spezzata è chiusa
+    checkIfClosed() {
+        if (this.points.length < 3) return false;
+        
+        let first = this.rotablePoint(this.points[0]);
+        let last = this.rotablePoint(this.points[this.points.length - 1]);
+        let d = dist(first.x, first.y, last.x, last.y);
+        
+        console.log("Controllo chiusura:");
+        console.log("Primo punto:", first);
+        console.log("Ultimo punto:", last);
+        console.log("Distanza:", d);
+        
+        this.isClosed = d < this.mergeThreshold;
+        return this.isClosed;
+    }
+	
+    findMergeCandidates(x, y) {
+        let nearest = {
+            index: -1,
+            distance: Infinity
+        };
+
+        // Non considerare punti consecutivi o il punto che stiamo trascinando
+        for (let i = 0; i < this.points.length; i++) {
+            if (i === this.draggingIndex || 
+                i === (this.draggingIndex + 1) % this.points.length || 
+                i === (this.draggingIndex - 1 + this.points.length) % this.points.length) {
+                continue;
+            }
+
+            let d = dist(x, y, this.points[i].x, this.points[i].y);
+            if (d < nearest.distance && d < this.mergeThreshold) {
+                nearest.distance = d;
+                nearest.index = i;
+            }
+        }
+
+        return nearest;
+    }
+
+	isPointInside(x, y) {
+		if (!this.isClosed || this.points.length < 3) return false;
+		if (this.isDraggingWhole) return true;  // mantieni inside solo durante il drag
+
+		// Prima controlla se siamo vicini a qualche segmento
+		let nearestSeg = this.findNearestSegment(x, y);
+		if (nearestSeg.distance < this.snapThreshold * 1.5) {
+			return false;  // Troppo vicino al bordo
+		}
+	
+		// Poi controlla se siamo vicini a qualche punto
+		let nearestPoint = this.findNearestPoint(x, y);
+		if (nearestPoint.distance < this.snapThreshold * 1.5) {
+			return false;  // Troppo vicino a un vertice
+		}
+	
+		let inside = false;
+		let j = this.points.length - 1;
+	
+		for (let i = 0; i < this.points.length; i++) {
+			let pi = this.rotablePoint(this.points[i]);
+			let pj = this.rotablePoint(this.points[j]);
+	
+			if (((-pi.y > -y) != (-pj.y > -y)) &&
+				(x < (pj.x - pi.x) * (-y - -pi.y) / (-pj.y - -pi.y) + pi.x)) {
+				inside = !inside;
+			}
+			j = i;
+		}
+	
+		//console.log("Inside:", inside); // debug
+		return inside;
+	}
+	
 	setResize(width, height){
 		this.width = width;
         this.height = height;
-		this.setRotation(this.rot)
+		console.log("setResize: "+width+" - "+height);
 	}
 
-	getRegion(){
-		return this.region;
+	scalexy() {
+		//console.log("scalexy: "+mouseX+" - "+mouseY);
+        this.mouseX = mouseX - this.width /2;
+        this.mouseY = this.height - mouseY;
+		//console.log("scalexy: "+this.mouseX+" - "+this.mouseY);
+		if(boardData.radarData.rot){// calcola il passaggio dei vertici dal riferimento ruotato al non ruotato
+			this.mouseX = -this.mouseX;
+			this.mouseY = this.height - this.mouseY;
+		}
+    }
+
+    addPoint(x, y) {
+		if (this.isClosed) {
+			console.log("Curva chiusa - non si possono aggiungere punti");
+			return;
+		}
+		this.points.push({ x: x, y: y });
+	}
+	
+	insertPoint(index, x, y) {
+		if (this.isClosed) {
+			console.log("Curva chiusa - non si possono inserire nuovi punti");
+			return;
+		}
+		this.points.splice(index, 0, { x: x, y: y });
 	}
 
-	setRegion(reg){
-		this.region = reg;
-		this.rect[0] = this.region[0];
-		this.rect[1] = this.region[1];
-		this.rect[2] = this.region[2];
-		this.rect[3] = this.region[3];
-		this.setRotation(this.rot)
-	}
-
-    setRotation(rot){
-        this.rot = rot;
-        if(this.rot){
-            // traduzione del rettangolo ruotato in una immagine nel riferimento non ruotato
-            this.rect[0] = -this.region[0];
-            this.rect[1] = this.height - this.region[1];
-            this.rect[2] = -this.region[2];
-            this.rect[3] = this.height - this.region[3];
-            console.log("rect rot----------------------------");
-        }else{		
-            // traduzione del rettangolo non ruotato in una immagine nel riferimento non ruotato
-            this.rect[0] = this.region[0];
-            this.rect[1] = this.region[1];
-            this.rect[2] = this.region[2];
-            this.rect[3] = this.region[3];
-            // Scala i valori del mouse per adattarli al riferimento dello schermo!!!
-            console.log("rect no rot----------------------------");
+    // Rimuove un punto dalla spezzata
+    removePoint(index) {
+		if (!this.editMode) return;
+        if (index >= 0 && index < this.points.length) {
+            this.points.splice(index, 1);
         }
     }
 
+	removeLastPoint(){
+		this.removePoint(this.points.length - 1);// rimuovi l'ultimo
+	}
+
     mousePressed() {
-        let scaledX = 0;
-        let scaledY = 0;
-        
-		//console.log("mouseX: "+mouseX);
-		//console.log("mouseY: "+mouseY);
-        // passaggio dell'input del mouse al riferimento non ruotato
-        scaledX = mouseX - this.width /2;
-        scaledY = this.height - mouseY;
-        
-        ///---------CALCOLO DELL'OFFSET NEL RIFERIMENTO NON RUOTATO--------------------------
-        console.log("mousePressed----------------------------");
-        console.log("rect: "+this.rect);
-        console.log("scaledX-rect[0]: "+scaledX+"-"+this.rect[0]);
-        console.log("scaledY- rect[1]: "+scaledY+"-"+this.rect[1]);
-        // Check if mouse is near any corner for resizing
-        const resizeThreshold = 10;
-        let inside1 = scaledX > this.rect[0] && scaledX < this.rect[2] && scaledY > this.rect[3] && scaledY < this.rect[1];
-        let inside2 = scaledX > this.rect[2] && scaledX < this.rect[0] && scaledY > this.rect[1] && scaledY < this.rect[3];
-        if (this.isNearCorner(scaledX, scaledY, this.rect[0], this.rect[1], resizeThreshold)) {
-            this.dragging = false;
-            this.resizing = true;
-            this.selectedCorner = 'topLeft';
-            console.log("Near topleft");
-        } else if (this.isNearCorner(scaledX, scaledY, this.rect[2], this.rect[1], resizeThreshold)) {
-            this.dragging = false;
-            this.resizing = true;
-            this.selectedCorner = 'topRight';
-            console.log("Near topRight");
-        } else if (this.isNearCorner(scaledX, scaledY, this.rect[0], this.rect[3], resizeThreshold)) {
-            this.dragging = false;
-            this.resizing = true;
-            this.selectedCorner = 'bottomLeft';
-            console.log("Near bottomLeft");
-        } else if (this.isNearCorner(scaledX, scaledY, this.rect[2], this.rect[3], resizeThreshold)) {
-            this.dragging = false;
-            this.resizing = true;
-            this.selectedCorner = 'bottomRight';
-            console.log("Near bottomRight");
-        } else if (inside1 || inside2) {
-            cursor("grab");
-            console.log("Near inside for dragging");
-            // Otherwise check if inside the rectangle for dragging 
-            // Traslazione
-            this.dragging = true;
-            this.offsetX = scaledX - this.rect[0]; 
-            this.offsetY = scaledY - this.rect[1];
-            console.log("offset: "+this.offsetX+" - "+this.offsetY);
-        }else{
-            cursor(ARROW);
+        if (!this.editMode) return;
+		this.scalexy();
+
+		// Se non ci sono punti, inizia a creare un rettangolo
+		console.log("this.points.length:", this.points.length);
+        if (this.points.length === 0 && mouseButton === LEFT) {
+            this.isCreatingRect = true;
+            this.rectStartPoint = { x: this.mouseX, y: this.mouseY };
+            // Crea un rettangolo iniziale di dimensione minima
+            let initialSize = 40;
+			this.points = [
+				{ x: this.mouseX, y: this.mouseY + initialSize },                     // top-left
+				{ x: this.mouseX + initialSize, y: this.mouseY + initialSize},       // top-right
+				{ x: this.mouseX + initialSize, y: this.mouseY  }, // bottom-right
+				{ x: this.mouseX, y: this.mouseY  }        // bottom-left
+			];
+			this.isClosed = true;  // impostiamo subito isClosed a true
+			this.isCreatingRect = false;  // non serve più, il rettangolo è già creato
+			console.log("Rettangolo creato, isClosed:", this.isClosed);
+			cursor('grab');
+            return;
         }
+
+        // Gestione del completamento del rettangolo
+        if (this.isCreatingRect) {
+            this.isCreatingRect = false;
+            this.isClosed = true;
+            this.rectStartPoint = null;
+            return;
+        }
+
+        if (this.isClosed) {
+            let isInside = this.isPointInside(this.mouseX, this.mouseY);
+            if (isInside) {
+                this.isDraggingWhole = true;
+                this.dragStartX = this.mouseX;
+                this.dragStartY = this.mouseY;
+                cursor('grab');
+                return;
+            }
+        }
+
+        // ... resto del codice esistente
+		let nearestPoint = this.findNearestPoint(this.mouseX, this.mouseY);
+	
+		if (mouseButton === LEFT) {		
+			const currentTime = millis();	
+			// Gestione doppio click come prima
+			console.log("doppio1:");
+			if (nearestPoint.distance < this.snapThreshold) {
+				console.log("doppio2:");
+				if (currentTime - this.lastClickTime < this.doubleClickDelay) {
+					console.log("doppio3:");
+					if (this.points.length > 3) {
+						console.log("doppio4:");
+						this.points.splice(nearestPoint.index, 1);
+						this.lastClickTime = 0;
+						return;
+					}
+				} else {
+					this.lastClickTime = currentTime;
+				}
+			}
+
+			// Check per drag di punti singoli
+			if (nearestPoint.distance < this.snapThreshold) {
+				this.draggingIndex = nearestPoint.index;
+				this.dragOffsetX = this.mouseX - this.points[nearestPoint.index].x;
+				this.dragOffsetY = this.mouseY - this.points[nearestPoint.index].y;
+				cursor('grab');
+				return;
+			}
+
+			// Check per drag dell'intera curva
+			if (this.isClosed && this.isPointInside(this.mouseX, this.mouseY)) {
+				this.isDraggingWhole = true;
+				this.dragStartX = this.mouseX;
+				this.dragStartY = this.mouseY;
+				cursor('grab');
+				return;
+			}
+
+			// Resto del codice per inserimento punti...
+			let nearestSeg = this.findNearestSegment(this.mouseX, this.mouseY);
+			if (nearestSeg.distance < this.snapThreshold) {
+				this.insertPoint(nearestSeg.index + 1, nearestSeg.point.x, nearestSeg.point.y);
+				this.draggingIndex = nearestSeg.index + 1;
+				this.dragOffsetX = this.mouseX - nearestSeg.point.x;
+				this.dragOffsetY = this.mouseY - nearestSeg.point.y;
+				cursor('grab');
+				return;
+			}
+
+			if (!this.isClosed) {
+				this.addPoint(this.mouseX, this.mouseY);
+				this.draggingIndex = -1;
+				cursor(ARROW);
+			}
+		}
     }
 
     mouseDragged() {
-        let scaledX = 0;
-        let scaledY = 0;
+        if (!this.editMode) return;
+        this.scalexy();
 
-        // passaggio dell'input del mouse al riferimento non ruotato
-        scaledX = mouseX - this.width /2;
-        scaledY = this.height - mouseY;
-
-    ///---------CALCOLO DEL DRAG & DROP NEL RIFERIMENTO NON RUOTATO A PARTIRE DALL'OFFSET--------------------------		
-        if (this.dragging) {
-                // Move the entire rectangle
-                let widthd = this.rect[2] - this.rect[0];
-                let heightd = this.rect[3] - this.rect[1];
-                
-                this.rect[0] = scaledX - this.offsetX;
-                this.rect[1] = scaledY - this.offsetY;
-                this.rect[2] = this.rect[0] + widthd;
-                this.rect[3] = this.rect[1] + heightd;
-        } else if (this.resizing) {	
-            // Resize the rectangle based on selected corner
-            if (this.selectedCorner === 'topLeft') {
-                console.log("drag topLeft");
-                this.rect[0] = scaledX;
-                this.rect[1] = scaledY;
-            } else if (this.selectedCorner === 'topRight') {
-                console.log("drag topRight");
-                this.rect[2] = scaledX;
-                this.rect[1] = scaledY;
-            } else if (this.selectedCorner === 'bottomLeft') {
-                console.log("drag bottomLeft");
-                this.rect[0] = scaledX;
-                this.rect[3] = scaledY;
-            } else if (this.selectedCorner === 'bottomRight') {
-                this.rect[2] = scaledX;
-                this.rect[3] = scaledY;
+        if (this.isDraggingWhole) {
+            // Calcola lo spostamento
+            let dx = this.mouseX - this.dragStartX;
+            let dy = this.mouseY - this.dragStartY;
+            
+            // Applica lo spostamento a tutti i punti
+            for (let point of this.points) {
+                point.x += dx;
+                point.y += dy;
             }
-            console.log("resize: "+scaledX+" - "+scaledY);
-        }	
-        if(this.rot){
-            // passaggio del risultato nel riferimento ruotato
-            this.region[0] = -this.rect[0];
-            this.region[1] = this.height - this.rect[1];
-            this.region[2] = -this.rect[2];
-            this.region[3] = this.height - this.rect[3];
-        }else{
-            // passaggio del risultato nel riferimento non ruotato
-            this.region[0] = this.rect[0];
-            this.region[1] = this.rect[1];
-            this.region[2] = this.rect[2];
-            this.region[3] = this.rect[3];
+            
+            // Aggiorna il punto di partenza per il prossimo frame
+            this.dragStartX = this.mouseX;
+            this.dragStartY = this.mouseY;
+            
+            cursor('grabbing');
         }
-		console.log("region: "+this.region);
-
-		return this.region;
+        else if (this.draggingIndex >= 0) {
+            // Drag normale di un singolo punto
+            this.points[this.draggingIndex].x = this.mouseX - this.dragOffsetX;
+            this.points[this.draggingIndex].y = this.mouseY - this.dragOffsetY;
+            cursor('grabbing');
+        }
+		return this.getPointsInMeters();
     }
 
     mouseReleased() {
-        this.dragging = false;
-        this.resizing = false;
-        this.selectedCorner = null;
+        if (!this.editMode) return;
+        
+        if (this.draggingIndex >= 0) {
+            this.checkForMerge();
+        }
+        
+        this.draggingIndex = -1;
+        this.isDraggingWhole = false;
+        cursor(ARROW);
+    }
+	
+	// Modifichiamo anche insertPoint per permettere sempre l'inserimento
+	insertPoint(index, x, y) {
+		// Rimuoviamo il controllo this.isClosed
+		this.points.splice(index, 0, { x: x, y: y });
+	}
+	
+	// addPoint rimane bloccato per curve chiuse
+	addPoint(x, y) {
+		if (this.isClosed) {
+			console.log("Curva chiusa - non si possono aggiungere nuovi punti alla fine");
+			return;
+		}
+		this.points.push({ x: x, y: y });
+	}
+	
+	 // Trova il punto più vicino alla posizione del mouse
+    findNearestPoint(x, y) {
+        let nearest = {
+            index: -1,
+            distance: Infinity
+        };
+
+        for (let i = 0; i < this.points.length; i++) {
+            let d = dist(x, y, this.points[i].x, this.points[i].y);
+            if (d < nearest.distance) {
+                nearest.distance = d;
+                nearest.index = i;
+            }
+        }
+
+        return nearest;
+    }
+
+	// Nuovo metodo per controllare e gestire le unioni
+    checkForMerge() {
+        if (this.points.length < 3) return;
+
+        let dragPoint = this.rotablePoint(this.points[this.draggingIndex]);
+        
+        // Prima controlla se stiamo chiudendo la curva
+        if (!this.isClosed) {
+            let firstPoint = this.rotablePoint(this.points[0]);
+            let d = dist(dragPoint.x, dragPoint.y, firstPoint.x, firstPoint.y);
+            
+            if (d < this.mergeThreshold && this.draggingIndex !== 0) {
+                console.log("Chiusura curva");
+                this.isClosed = true;
+                return;
+            }
+        }
+
+        // Poi controlla altre possibili unioni se la curva è già chiusa
+        if (this.isClosed) {
+            for (let i = 0; i < this.points.length; i++) {
+                if (i === this.draggingIndex) continue;
+                
+                let point = this.rotablePoint(this.points[i]);
+                let d = dist(dragPoint.x, dragPoint.y, point.x, point.y);
+                
+                if (d < this.mergeThreshold) {
+                    console.log(`Unione punti ${this.draggingIndex} e ${i}`);
+                    // Unisci i punti alla posizione media
+                    let midX = (this.points[this.draggingIndex].x + this.points[i].x) / 2;
+                    let midY = (this.points[this.draggingIndex].y + this.points[i].y) / 2;
+                    this.points[this.draggingIndex].x = midX;
+                    this.points[this.draggingIndex].y = midY;
+                    this.points[i].x = midX;
+                    this.points[i].y = midY;
+                    return;
+                }
+            }
+        }
+    }
+
+	findNearestClosedCurve(point) {
+		let pp = this.rotablePoint(point);
+		console.log("\nPunto trascinato:");
+		console.log("- Originale:", point);
+		console.log("- Ruotato:", pp);
+		console.log("- Punto zero di riferimento: (0,0)");
+		
+		for (let i = 0; i < this.points.length; i++) {
+			if (i === this.draggingIndex) continue;
+			
+			let curvePoint = this.points[i];
+			let rotatedPoint = this.rotablePoint(curvePoint);
+			let d = dist(pp.x, pp.y, rotatedPoint.x, rotatedPoint.y);
+			
+			console.log(`\nConfrontando con punto ${i}:`);
+			console.log("- Originale:", curvePoint);
+			console.log("- Ruotato:", rotatedPoint);
+			console.log("- Distanza:", d);
+			
+			if (d < this.mergeThreshold) {
+				console.log("MATCH TROVATO!");
+				return i;
+			}
+		}
+		return -1;
+	}
+	
+	mergeCurves(index1, index2) {
+        console.log("\nTentativo di unione tra i punti", index1, "e", index2);
+        console.log("isClosed:", this.isClosed);
+        console.log("Punti prima dell'unione:", this.points);
+        
+        // Non controlliamo più this.isClosed qui
+        let newPoints = [];
+        
+        // Aggiungi i punti nella nuova sequenza
+        for (let i = 0; i <= index1; i++) {
+            newPoints.push({...this.points[i]});
+        }
+        
+        let j = index2;
+        while (j < this.points.length) {
+            newPoints.push({...this.points[j]});
+            j++;
+        }
+        j = 0;
+        while (j < index2) {
+            newPoints.push({...this.points[j]});
+            j++;
+        }
+
+        console.log("Punti dopo l'unione:", newPoints);
+        this.points = newPoints;
+        this.isClosed = true;  // La curva risultante sarà chiusa
+    }
+	
+	rotablePoint(p){
+		if(boardData.radarData.rot){// calcola il passaggio dei vertici dal riferimento ruotato al non ruotato
+			p.x = -p.x;
+			p.y = this.height - p.y;
+		}
+		return p;
+	}
+
+	checkInside(x, y) {
+		if (!this.isClosed || this.points.length < 3) return false;
+	
+		let inside = false;
+		let j = this.points.length - 1;
+	
+		for (let i = 0; i < this.points.length; i++) {
+			let pi = this.rotablePoint(this.points[i]);
+			let pj = this.rotablePoint(this.points[j]);
+	
+			if (((-pi.y > -y) != (-pj.y > -y)) &&
+				(x < (pj.x - pi.x) * (-y - -pi.y) / (-pj.y - -pi.y) + pi.x)) {
+				inside = !inside;
+			}
+			j = i;
+		}
+	
+		return inside;
+	}
+
+	draw() {
+		if(this.enabled){
+			this.scalexy();
+			// Prima disegniamo l'evidenziazione se il mouse è dentro
+			if (this.editMode && this.isClosed) {
+				if (this.isPointInside(this.mouseX, this.mouseY) || this.isDraggingWhole) {
+					fill(this.areaColor);
+					noStroke();
+					beginShape();
+					// disegna i punti
+					for (let point of this.points) {
+						let pp = this.rotablePoint(point);
+						vertex(pp.x, -pp.y);
+					}
+					endShape(CLOSE);
+					cursor('grab');
+				}
+			}
+		
+			// Disegna la spezzata principale
+			stroke(this.areaColor);
+			strokeWeight(2);
+			if(this.report){
+				fill(this.areaColor);
+			}else{
+				noFill();
+			}
+			beginShape();
+			for (let point of this.points) {
+				let pp = this.rotablePoint(point);
+				vertex(pp.x, -pp.y);
+			}
+			if (this.isClosed && this.points.length > 0) {
+				let init = this.rotablePoint(this.points[0]);
+				vertex(init.x, -init.y);
+			}
+			endShape();
+		
+			// Debug info
+			if (this.editMode) {
+
+				// Disegna i vertici
+				for (let i = 0; i < this.points.length; i++) {
+					let point = this.points[i];
+					let pp = this.rotablePoint(point);
+					
+					// Evidenzia il punto se è quello selezionato
+					if (i === this.draggingIndex) {
+						fill(this.areaColor);
+					} else {
+						// Controlla se il mouse è sopra questo punto e abbiamo abbastanza punti
+						let d = dist(this.mouseX, this.mouseY, pp.x, -pp.y);
+						if (d < this.snapThreshold && this.points.length > 3) {
+							fill(255, 165, 0);  // arancione per indicare che può essere eliminato
+						} else {
+							fill(this.areaColor);
+						}
+					}
+					
+					noStroke();
+					circle(pp.x, -pp.y, this.vertexRadius * 2);
+					
+					// Mostra indici e coordinate dei punti
+					fill(255);
+					let pm = this.getPointInMeters(pp);
+					textAlign(CENTER, BOTTOM);
+					text(`${i}`, pp.x, -(pp.y - this.vertexRadius));
+					textAlign(LEFT, CENTER);
+					text(`(${pm.x.toFixed(2)}, ${pm.y.toFixed(2)})`, pp.x + 10, -pp.y);
+				}
+		
+				// Se stiamo trascinando un punto
+				if (this.draggingIndex >= 0) {
+					let current = this.rotablePoint(this.points[this.draggingIndex]);
+					
+					// Cerchio di aggancio
+					noFill();
+					stroke(200);
+					strokeWeight(1);
+					circle(current.x, -current.y, this.mergeThreshold * 2);
+					
+					// Mostra distanze dai punti vicini
+					for (let i = 0; i < this.points.length; i++) {
+						if (i !== this.draggingIndex) {
+							let other = this.rotablePoint(this.points[i]);
+							let d = dist(current.x, current.y, other.x, other.y);
+							if (d < this.mergeThreshold * 2) {
+								stroke(0, 255, 0);
+								line(current.x, -current.y, other.x, -other.y);
+								fill(255);
+								noStroke();
+								text(`d: ${d.toFixed(1)}`, 
+									(current.x + other.x)/2, 
+									-(current.y + other.y)/2);
+							}
+						}
+					}
+				}		
+			} else {
+				fill(0);
+				noStroke();
+				textAlign(LEFT, TOP);
+				text(`Edit Mode OFF (Enter to resume) - ${this.isClosed ? 'Closed' : 'Open'} curve`, 10, 10);
+			}
+			// Se c'è un'etichetta e la curva è chiusa, mostrala al centro
+			if (this.isClosed && this.label) {
+				let centerX = 0, centerY = 0;
+				for (let point of this.points) {
+					let pp = this.rotablePoint(point);
+					centerX += pp.x;
+					centerY += pp.y;
+				}
+				centerX /= this.points.length;
+				centerY /= this.points.length;
+
+				fill(this.areaColor);
+				noStroke();
+				textAlign(CENTER, CENTER);
+				textSize(16);
+				text(this.label, centerX, -centerY);
+			}
+		}
+	}
+
+    // Restituisce l'array dei punti
+    getPoints() {
+        return this.points;
+    }
+
+	getPointsInMeters() {
+		let arr = this.points.map((p)=>{
+			let x = this.mapInverse(p.x, -this.width/2, this.width/2,-this.radius, this.radius);
+			let y = this.mapInverse(p.y, 0, -this.height, 0, -this.radius);
+			return  [x, y];
+		});
+        return arr;
+    }
+
+	importPointsInMeters(list){
+		let parr = list.map((p) => {	
+			let xv = Number(p[0]);
+			let yv = Number(p[1]);
+			return this.getPointInPixel({x: xv, y: yv});
+		});
+		this.isCreatingRect = true;
+		this.rectStartPoint = parr[0];
+		this.points = parr;
+		this.isClosed = true;  // impostiamo subito isClosed a true
+		this.isCreatingRect = false;  // non serve più, il rettangolo è già creato
+		this.editMode = false;
+	}
+
+	getPointInMeters(p) {
+		let xx = this.mapInverse(p.x, -this.width/2, this.width/2, -this.radius, this.radius);
+		let yy = this.mapInverse(p.y, 0, -this.height, 0, -this.radius);
+        return { x: xx, y: yy*this.ratio };
+    }
+
+	getPointInPixel(p) {
+		let xx = this.map2(p.x, -this.radius, this.radius, -this.width/2, this.width/2);
+		let yy = this.map2(p.y, 0, -this.radius*this.ratio, 0, -this.height);
+        return { x: xx, y: yy };
+    }
+
+    // Imposta un nuovo array di punti
+    setPoints(points) {
+		if (!this.editMode) return;
+        this.points = points;
+    }
+	
+	startEditing() {
+        this.editMode = true;
+    }
+
+    stopEditing() {
+        this.editMode = false;
+        this.draggingIndex = -1;
         cursor(ARROW);
     }
 
-    // Utility to check if mouse is near a corner for resizing
-    isNearCorner(mx, my, x, y, threshold) {
-        let d = dist(mx, my, x, y);
-        console.log("Dist: "+d);
-        return d  < threshold;
+    toggleEditing() {
+        if (this.editMode) {
+            this.stopEditing();
+        } else {
+            this.startEditing();
+        }
     }
+
+    isEditing() {
+        return this.editMode;
+    }
+	
+	// Calcola la distanza tra un punto e un segmento
+    distanceToSegment(px, py, x1, y1, x2, y2) {
+        const A = px - x1;
+        const B = py - y1;
+        const C = x2 - x1;
+        const D = y2 - y1;
+
+        const dot = A * C + B * D;
+        const len_sq = C * C + D * D;
+        let param = -1;
+
+        if (len_sq != 0) param = dot / len_sq;
+
+        let xx, yy;
+
+        if (param < 0) {
+            xx = x1;
+            yy = y1;
+        } else if (param > 1) {
+            xx = x2;
+            yy = y2;
+        } else {
+            xx = x1 + param * C;
+            yy = y1 + param * D;
+        }
+
+        const dx = px - xx;
+        const dy = py - yy;
+        return {
+            distance: Math.sqrt(dx * dx + dy * dy),
+            point: { x: xx, y: yy }
+        };
+    }
+
+    findNearestSegment(x, y) {
+		let nearest = {
+			index: -1,  // Indice del primo punto del segmento
+			distance: Infinity,
+			point: null
+		};
+	
+		// Numero di segmenti da controllare
+		let numSegments = this.isClosed ? this.points.length : this.points.length - 1;
+	
+		for (let i = 0; i < numSegments; i++) {
+			const p1 = this.points[i];
+			// Se è l'ultimo segmento di una curva chiusa, collega con il primo punto
+			const p2 = this.points[(i + 1) % this.points.length];
+			
+			const result = this.distanceToSegment(x, y, p1.x, p1.y, p2.x, p2.y);
+	
+			if (result.distance < nearest.distance) {
+				nearest.distance = result.distance;
+				nearest.index = i;
+				nearest.point = result.point;
+			}
+		}
+	
+		return nearest;
+	}
+	/*
+	Riassumiamo le funzionalità che abbiamo implementato:
+
+Editing base:
+
+Aggiunta punti
+Drag dei singoli vertici
+Inserimento punti sui segmenti
+Rimozione punti con doppio click
+
+
+Gestione curva chiusa:
+
+Chiusura automatica quando i punti si avvicinano
+Drag dell'intera area cliccando all'interno
+Area evidenziata al passaggio del mouse
+Zona "buffer" vicino ai bordi per evitare conflitti
+
+
+Feedback visivo:
+
+Colore personalizzabile dell'area
+Etichetta al centro
+Indicatori di distanza
+Evidenziazione punti selezionabili
+Cursori appropriati per le varie azioni
+
+
+Salvataggio e caricamento:
+
+Salvataggio configurazione completa
+Caricamento da dati salvati
+Persistenza di colori ed etichette
+	*/
 }
 
 // Definisci la classe MonostableTimer
@@ -379,13 +1103,16 @@ const commandMap = {
 				console.log('regions receive ', value);
 				// update boardData region from state feedback
 				let r = boardData.radarData.regions;
-				r.x0 = value.x0.map(Number);
-				r.y0 = value.y0.map(Number);
-				r.x1 = value.x1.map(Number);
-				r.y1 = value.y1.map(Number);
 				r.narea = value.narea.map(Number);
 				r.type = value.type.map(Number);
 				r.enabled = value.enabled.map(Number);
+
+				plns = value.polilines;
+				r.polilines = plns;// save regions on boardData 
+				for(i=0; i<plns.length; i++){
+					r.dar[i].importPointsInMeters(plns[i]);
+					r.dar[i].enabled = r.enabled[i];
+				}			
 
 				console.log('regions receive ENABLED', r.enabled);
 				setElem("areaenable", '', '');
@@ -393,7 +1120,6 @@ const commandMap = {
 				setElem("areavertices", '', '');
 				setElem("areasel", '', '');
 				setElem("areaenable", '', '');
-				expandBoardDataRegion();
 				updateInputsFromBoardDataRegion();
 				//updateBoardUI();
 			},
@@ -589,10 +1315,10 @@ function switchToNextBroker() {
 }
 
 alertUser("#FFA500");
+alertUserIot("red");
 // Initial connection attempt
 connectToBroker();
 setInputListeners();
-//expandBoardDataRegion();// for local test only
 
 // window.onload = pubReadAtt(boardId, "allState");
 		
@@ -786,50 +1512,65 @@ function setInputListeners() {
 		radarstate.style.backgroundColor = "#E67E22"; // activate the wait signal for command feedback
 	}
 	/// RADAR AREA CONFIG  ///////////////////////////////////////////////////////////////////////////////////////
-	let x0= areavertices.querySelector('.x0');// Trova la classe dell'oggetto di input da leggere ogni evento utente
-	let y0= areavertices.querySelector('.y0');
-	let x1= areavertices.querySelector('.x1');
-	let y1= areavertices.querySelector('.y1');
+	//let x0= areavertices.querySelector('.x0');// Trova la classe dell'oggetto di input da leggere ogni evento utente
+	//let y0= areavertices.querySelector('.y0');
+	//let x1= areavertices.querySelector('.x1');
+	//let y1= areavertices.querySelector('.y1');
 	let areatypesel = document.getElementById('areatypesel');// Trova l'id del contenitore grid degli inputlet areavertices = document.getElementById('areavertices');// Trova l'id del contenitore grid degli input
 	let areaenable = document.getElementById('areaenable');// Trova l'id del contenitore grid degli input
 	let areaenablesel = areaenable.querySelector('.sel');
 	let areatypeselsel = areatypesel.querySelector('.sel');
-	dataentry = [x0, y0, x1, y1, areaenablesel, areatypeselsel];
+	//dataentry = [x0, y0, x1, y1, areaenablesel, areatypeselsel];
+	dataentry = [areaenablesel, areatypeselsel];
 
 	let areasel = document.getElementById('areasel');
 	let areaselsend = areasel.querySelector('.send');// Trova la classe dell'oggetto di input che riceve l'evento utente
 	areaselsend.onclick = () => {
 		// update boardData region from user input
 		let r = boardData.radarData.regions;
-		let selectedRectangle = r.selected-1;
+		let selectedPoliline = r.selected-1;
 		let typeval= areatypeselsel.value;
-		//let i= areaselsel.value;
 		let enabledval = areaenablesel.value;
-		//boardData.radarData.regions.selected = i;
-		r.x0[selectedRectangle] = Number(x0.value);
-		r.y0[selectedRectangle] = Number(y0.value);
-		r.x1[selectedRectangle] = Number(x1.value);
-		r.y1[selectedRectangle] = Number(y1.value);
-		r.type[selectedRectangle] = Number(typeval);
-		r.enabled[selectedRectangle] = Number(enabledval);
-		r.narea[selectedRectangle] = Number(selectedRectangle);
-		//expandBoardDataRegion();		
-
+		r.type[selectedPoliline] = Number(typeval);
+		r.enabled[selectedPoliline] = Number(enabledval);
+		r.narea[selectedPoliline] = Number(selectedPoliline);
+		console.log('selectedPoliline', selectedPoliline);
+		console.log('r.polilines[selectedPoliline]', r.polilines[selectedPoliline]);
 		const region = {	
-			narea: boardData.radarData.regions.selected,
+			narea: r.selected,
 			type: typeval,
 			enabled: enabledval,
-			x0: x0.value,
-			y0: y0.value,
-			x1: x1.value,
-			y1: y1.value,
-		};			
+			shape: 0,
+			points: r.polilines[selectedPoliline]
+		};	
+		/*
+		v = {
+            'narea': 0,
+            'type': 0,
+            'shape': 0,
+            'points': [
+            ]    
+        }
+		*/		
 		console.log('region send', region);
 		pubAtt("region", region, boardId, "write"); //serializza e invia
 		areavertices.style.backgroundColor = "#E67E22"; // activate the wait signal for command feedback
 		areasel.style.backgroundColor = "#E67E22"; // activate the wait signal for command feedback
 		areatypesel.style.backgroundColor = "#E67E22"; // activate the wait signal for command feedback
 	}
+	/// RADAR AREA TYPE SETTING  ///////////////////////////////////////////////////////////////////////////////////////
+	let areatypesend = areatypesel.querySelector('.send');
+	areatypesend.onclick = () => {
+		let r = boardData.radarData.regions;
+		const val = {	
+			narea: r.selected,
+			type: areatypeselsel.value,
+			shape:0,
+		};
+		console.log('radar type send', val);
+    	pubAtt("areatype", val, boardId, "write"); //serializza e invia
+		areatypesel.style.backgroundColor = "#E67E22";
+	}	
 	/// RADAR AREA ENABLE/DISABLE  ///////////////////////////////////////////////////////////////////////////////////////
 	let areaselsel = areasel.querySelector('.sel');
 	areaselsel.onchange = () => {
@@ -845,15 +1586,15 @@ function setInputListeners() {
 		let enabled = Number(areaenablesel.value);
 		
 		let r = boardData.radarData.regions;
-		let region = r.selected;
+		let regionid = r.selected;
 		if(enabled){
-			console.log('areenable '+region);
-			r.enabled[region-1] = 1;
-			pubAtt("areaenable", region, boardId, "write"); //serializza e invia
+			console.log('areenable '+regionid);
+			r.enabled[regionid-1] = 1;
+			pubAtt("areaenable", regionid, boardId, "write"); //serializza e invia
 		}else{
-			console.log('areadisable '+region);
-			r.enabled[region-1] = 0;
-			pubAtt("areadisable", region, boardId, "write"); //serializza e invia
+			console.log('areadisable '+regionid);
+			r.enabled[regionid-1] = 0;
+			pubAtt("areadisable", regionid, boardId, "write"); //serializza e invia
 		}
 		areaenable.style.backgroundColor = "#E67E22"; // activate the wait signal for command feedback
 	}
@@ -907,32 +1648,8 @@ function updateBoardUI() {
     sensorDataElement.querySelector('.total').innerText = `${boardData.luxData.total} Lux`;
 }
 
-function expandBoardDataRegion() {	// espande nel riferimento NON ruotato
-	let r = boardData.radarData.regions;
-	//let selectedRectangle = r.selected-1;
-
-	let container1 = document.getElementById('radar');
-	let width1 = container1.offsetWidth*0.988;
-	let height1 = width1*1.2/2;
-	for(let i=0; i<3; i++){
-		// rotated
-		selectedRectangle = i;		
-		// not rotated
-		r.xnr0[selectedRectangle] = map2(r.x0[selectedRectangle], -6, 6, -width1 * 0.3, width1 * 0.3);
-		r.ynr0[selectedRectangle] = map2(r.y0[selectedRectangle], 0, -6, 0, -height1);
-		r.xnr1[selectedRectangle] = map2(r.x1[selectedRectangle], -6, 6, -width1 * 0.3, width1 * 0.3);
-		r.ynr1[selectedRectangle] = map2(r.y1[selectedRectangle  ], 0, -6, 0, -height1);
-	
-		console.log("r.xnr0[i]:"+r.xnr0[selectedRectangle]);
-		console.log("r.ynr0[i] :"+r.ynr0[selectedRectangle]);
-		console.log("r.xnr1[i] :"+r.xnr1[selectedRectangle]);
-	}
-	console.log("r.ynr1[i] :"+r.ynr1[selectedRectangle]);
-	// Aggiorna le coordinate delle aree
-	for(let i=0; i<3; i++){
-		r.dar[i].setRegion([r.xnr0[i], r.ynr0[i], r.xnr1[i], r.ynr1[i]]);
-	}
-}
+var radius=10;
+var toph = 1;
 
 function setup() {
     // Ottieni il div contenitore
@@ -941,13 +1658,26 @@ function setup() {
     var width = container.offsetWidth*0.988;
     //let height = width*1.1/2;
 	var height = width*1.2/2;
+	toph = height/width*2*radius;
+	
+	const colors = [
+		color(255, 182, 193, 100), // LightPink #FFB6C1
+		color(173, 216, 230, 100), // LightBlue #ADD8E6
+		color(144, 238, 144, 100), // LightGreen #90EE90
+		color(255, 218, 185, 100), // PeachPuff #FFDAB9
+		color(221, 160, 221, 100), // Plum      #DDA0DD
+		color(176, 196, 222, 100)  // LightSteelBlue #B0C4DE
+	];
 
 	let r = boardData.radarData.regions;
 	console.log("INIT DAR: ");
 	r.dar = [
-		new DragAndResize([r.xnr0[0], r.ynr0[0], r.xnr1[0], r.ynr1[0]], width, height), 
-		new DragAndResize([r.xnr0[1], r.ynr0[1], r.xnr1[1], r.ynr1[1]], width, height), 
-		new DragAndResize([r.xnr0[2], r.ynr0[2], r.xnr1[2], r.ynr1[2]], width, height) 
+		new PolylineEditor([], width, height, colors[0], "Area 1", 10),
+		new PolylineEditor([], width, height, colors[1], "Area 2", 10),
+		new PolylineEditor([], width, height, colors[2], "Area 3", 10),
+		new PolylineEditor([], width, height, colors[3], "Area 4", 10),
+		new PolylineEditor([], width, height, colors[3], "Area 5", 10),
+		new PolylineEditor([], width, height, colors[4], "Area 6", 10)
 	];
 	
 	console.log("width: "+width);
@@ -962,11 +1692,16 @@ function setup() {
 function draw() {
     background(0);
     translate(width / 2, height); // Sposta l'origine in basso al centro
+	let r = boardData.radarData.regions;
+	for(i=0; i<6; i++){
+		r.dar[i].draw();
+		r.dar[i].setReport(r.ntarget[i]);
+	}
     drawGrid(); // Aggiungi questa funzione per disegnare la griglia
-	drawRegions();
     stroke(255);
     noFill();
 	drawDistanceCircles();
+	
 	let x = 0;
 	let y = 0;
 	let scaledX = 0;
@@ -982,83 +1717,29 @@ function draw() {
 		
 			if(boardData.radarData.rot){
 				// Scala i valori per adattarli allo schermo
-				scaledX = map(x, 6, -6, -width * 0.3, width * 0.3);
-				scaledY = map(y, 6, 0, 0, -height);
+				scaledX = map(x, radius, -radius, -width/2 , width/2 );
+				scaledY = map(y, toph, 0, 0, -height);
 			}else{
-				scaledX = map(x, -6, 6, -width * 0.3, width * 0.3);
-				scaledY = map(y, 0, 6, 0, -height);
+				scaledX = map(x, -radius, radius, -width/2, width/2 );
+				scaledY = map(y, 0, toph, 0, -height);
 			}
 			// Disegna il punto
 			fill(0, 255, 0);
-			noStroke();        
-			ellipse(scaledX, scaledY, 10, 10);
-			// Etichette
-			fill(255);
-			textSize(12);
-			text(`X: ${x}`, scaledX + 5, scaledY - 20);
-			text(`Y: ${y}`, scaledX + 5, scaledY - 10);
-
+			noStroke();
+			if(scaledX || scaledY){
+				ellipse(scaledX, scaledY, 10, 10);
+				// Etichette
+				fill(255);
+				textSize(12);
+				text(`X: ${x}`, scaledX + 5, scaledY - 20);
+				text(`Y: ${y}`, scaledX + 5, scaledY - 10);
+			}        
+			
 			//text(`X: ${x}`, scaledX + 5, scaledY - 20+boardData.radarData.rot*20);
 			//text(`Y: ${y}`, scaledX + 5, scaledY - 10+boardData.radarData.rot*20);
 		}
 	}
-}
-
-// Disegna la griglia delle aree
-function drawRegions(bid) {
-    //stroke(255);
-    strokeWeight(1);
 	
-	let r = boardData.radarData.regions;
-	
-	// draw areas rectangles
-	for(i=0; i<3; i++){
-		//console.log("r.enabled: "+ r);
-		if(r.enabled[i]){
-			//console.log("r: "+[r.x0[i], r.y0[i], r.x1[i], r.y1[i]]);
-			// Il riferimento di stampa è il riferimento non ruotato
-			if(boardData.radarData.rot){// calcola il passaggio dei vertici dal riferimento ruotato al non ruotato
-				// Scala i valori per adattarli allo schermo
-				//console.log("r: "+[r.xr0[i], r.yr0[i], r.xr1[i], r.yr1[i]]);
-				scaledX0 = -r.xnr0[i];
-				scaledY0 = height - r.ynr0[i];
-				scaledX1 = -r.xnr1[i]
-				scaledY1 = height - r.ynr1[i];
-			}else{// lascia i vertici nel riferimento NON ruotato
-				//console.log("r: "+[r.xnr0[i], r.ynr0[i], r.xnr1[i], r.ynr1[i]]);
-				scaledX0 = r.xnr0[i];
-				scaledY0 = r.ynr0[i];
-				scaledX1 = r.xnr1[i];
-				scaledY1 = r.ynr1[i];
-			}
-			//fill(r.color || [255, 0, 0]);
-			noFill();
-			stroke(r.color[i]);
-			rectMode(CORNERS);
-			
-			//console.log("rect: "+[scaledX0, scaledY0, scaledX1, scaledY1]);
-			let x = scaledX0; // Minimo tra le coordinate X per ottenere il lato sinistro
-			let y = scaledY0; // Minimo tra le coordinate Y per ottenere il lato superiore
-			
-			// Disegna il punto
-			//fill(0, 255, 0);
-		
-			ellipse(scaledX0, -scaledY0, 5, 5);
-
-			ellipse(scaledX1, -scaledY1, 5, 5);
-
-			if (r.ntarget[i]==1) {
-				// Imposta il colore di riempimento a rosso con trasparenza (alpha)
-				fill(r.color[i]);  // Rosso semitrasparente (alpha=127 su 255)
-			} else {
-				// Imposta un colore di riempimento predefinito (ad esempio bianco)
-				noFill();
-			}
-
-			// Ora, ricorda che l'asse Y è invertito con la nuova origine
-			rect(x, -y, scaledX1, -scaledY1); // Disegna il rettangolo
-		}
-	}
 }
 
 function drawGrid() {
@@ -1066,33 +1747,34 @@ function drawGrid() {
     strokeWeight(0.5);
 
     // Linee verticali
-    for (let x = -width * 0.3*2; x <= width * 0.3*2; x += width * 0.05) {
+    for (let x = -width / 2; x <= width / 2 ; x += width * 0.05) {
         line(x, -height, x, 0);
     }
 
     // Linee orizzontali
-    for (let y = 0; y >= -height; y -= height * 0.05) {
-        line(-width * 0.3*2, y, width * 0.3*2, y);
+    for (let y = 0; y >= -height; y -= width * 0.05) {
+        line(-width/2, y, width/2 , y);
     }
 }
 
 function drawDistanceCircles() {
+	
     const maxDistance = 10; // La distanza massima del radar
     const numCircles = 5; // Numero di cerchi da disegnare
 
-	for (let i = 1; i <= numCircles; i++) {
-        let radius = map(i, 0, numCircles, 0, width / 2);
+	for (let i = 2; i <= 2*radius; i+=2) {
+        let d = map(i, 0, radius*2, 0, width);
 		if(!boardData.radarData.rot){
-			ellipse(0, 0, radius * 2, radius * 2);
+			ellipse(0, 0, d, d);
 		}else{
-			ellipse(0, -height, radius * 2, radius * 2);
+			ellipse(0, -height, d, d);
 		}
         
         // Etichette di distanza
         textSize(12);
         textAlign(CENTER);
-        let rounded = Math.round((maxDistance / numCircles) * i * 10) / 10;
-        text(`${rounded} m`, radius-13, -5 + boardData.radarData.rot*(20 - height));
+        let rounded = Math.round(i * 10) / 10;
+        text(`${rounded} m`, d-13, -5 + boardData.radarData.rot*(20 - height));
     }
 }
 
@@ -1110,7 +1792,7 @@ function resizeCanvasToDiv() {
     resizeCanvas(width, height);
 
 	let r = boardData.radarData.regions;
-	for(i=0; i<3; i++){
+	for(i=0; i<6; i++){
 		r.dar[i].setResize(width, height); 
 	}
 }
@@ -1159,12 +1841,8 @@ function adjustDateTime(dateTimeString) {
 function updateInputsFromBoardDataRegion() {
 	let r = boardData.radarData.regions;
 	let selectedRectangle = r.selected -1;
-	dataentry[0].value = roundTo(r.x0[selectedRectangle], 1);
-	dataentry[1].value = roundTo(r.y0[selectedRectangle], 1);
-	dataentry[2].value = roundTo(r.x1[selectedRectangle], 1);
-	dataentry[3].value = roundTo(r.y1[selectedRectangle], 1);
-	dataentry[4].value = roundTo(r.enabled[selectedRectangle], 1);
-	dataentry[5].value = roundTo(r.type[selectedRectangle], 1);			
+	dataentry[0].value = roundTo(r.enabled[selectedRectangle], 1);
+	dataentry[1].value = roundTo(r.type[selectedRectangle], 1);			
 }
 
 function mousePressed() {
@@ -1177,21 +1855,9 @@ function mousePressed() {
 function mouseDragged() {
 	let r = boardData.radarData.regions;
 	let selectedRectangle = r.selected -1;
-	//console.log("selectedRectangle dragged: "+selectedRectangle);
-	// seleziona gestore del resizing dell'area corrente
-	let selRect = r.dar[selectedRectangle].mouseDragged();
-	// aggiorna vertici dell'area corrente per la stampa
-	r.xnr0[selectedRectangle] = selRect[0];
-	r.ynr0[selectedRectangle] = selRect[1];
-	r.xnr1[selectedRectangle] = selRect[2];
-	r.ynr1[selectedRectangle] = selRect[3];
-	// calcola i vertici base dell'area corrente in metri
-	r.x0[selectedRectangle] = mapInverse(r.xnr0[selectedRectangle], -width * 0.3, width * 0.3, -6, 6);
-	r.y0[selectedRectangle] = mapInverse(r.ynr0[selectedRectangle], 0, -height, 0, -6);
-	r.x1[selectedRectangle] = mapInverse(r.xnr1[selectedRectangle], -width * 0.3, width * 0.3, -6, 6);
-	r.y1[selectedRectangle] = mapInverse(r.ynr1[selectedRectangle], 0, -height, 0, -6);
-	// aggiorna feedback nella GUI
-	updateInputsFromBoardDataRegion();
+	let plns = r.polilines;
+	plns[selectedRectangle] = r.dar[selectedRectangle].mouseDragged();
+	console.log("selRect "+plns[selectedRectangle]);
 }
 
 function mouseReleased() {
@@ -1201,12 +1867,27 @@ function mouseReleased() {
 	r.dar[selectedRectangle].mouseReleased();
 }
 
-function mapInverse(value, start2, stop2, start1, stop1) {
-  return (value - start2) * (stop1 - start1) / (stop2 - start2) + start1;
+// Opzionale: rimuove l'ultimo punto quando si preme il tasto 'z'
+function keyPressed() {
+	console.log("key: "+key);
+	let r = boardData.radarData.regions;
+	let selectedRectangle = r.selected -1;
+	let editor = r.dar[selectedRectangle];
+    if (key === 'z' || key === 'Z') {
+		editor.removeLastPoint();
+    }else if(key ==='Escape'){
+		console.log("Escape ");
+		editor.stopEditing();
+	}else if(key ==='Enter'){
+		console.log("Enter ");
+		editor.startEditing();
+	}else if(key ==='Backspace'){
+		console.log("Backspace ");
+		editor.toggleEditing();
+	}else if(key ==='Delete' || key ==='d' || key ==='D'){
+		// Se ci sono punti da cancellare
+		editor.clearFigure();
+	}else if(key ==='r' || key ==='R'){
+		editor.approximateToRectangle();
+	}	
 }
-
-function map2(value, start1, stop1, start2, stop2) {
-  return (value - start1) * (stop2 - start2) / (stop1 - start1) + start2;
-}
-
-
