@@ -293,8 +293,8 @@ class PolylineEditor {
     checkIfClosed() {
         if (this.points.length < 3) return false;
         
-        let first = this.rotablePoint(this.points[0]);
-        let last = this.rotablePoint(this.points[this.points.length - 1]);
+        let first = this.points[0];
+        let last = this.points[this.points.length - 1];
         let d = dist(first.x, first.y, last.x, last.y);
         
         console.log("Controllo chiusura:");
@@ -350,8 +350,8 @@ class PolylineEditor {
 		let j = this.points.length - 1;
 	
 		for (let i = 0; i < this.points.length; i++) {
-			let pi = this.rotablePoint(this.points[i]);
-			let pj = this.rotablePoint(this.points[j]);
+			let pi = this.points[i];
+			let pj = this.points[j];
 	
 			if (((-pi.y > -y) != (-pj.y > -y)) &&
 				(x < (pj.x - pi.x) * (-y - -pi.y) / (-pj.y - -pi.y) + pi.x)) {
@@ -371,13 +371,14 @@ class PolylineEditor {
 	}
 
 	scalexy() {
-		//console.log("scalexy: "+mouseX+" - "+mouseY);
-        this.mouseX = mouseX - this.width /2;
-        this.mouseY = this.height - mouseY;
 		//console.log("scalexy: "+this.mouseX+" - "+this.mouseY);
 		if(boardData.radarData.rot){// calcola il passaggio dei vertici dal riferimento ruotato al non ruotato
-			this.mouseX = -this.mouseX;
-			this.mouseY = this.height - this.mouseY;
+			this.mouseX = -(mouseX - this.width /2);
+			this.mouseY = mouseY;
+		}else{
+			//console.log("scalexy: "+mouseX+" - "+mouseY);
+			this.mouseX = mouseX - this.width /2;
+			this.mouseY = this.height - mouseY;
 		}
     }
 
@@ -590,11 +591,11 @@ class PolylineEditor {
     checkForMerge() {
         if (this.points.length < 3) return;
 
-        let dragPoint = this.rotablePoint(this.points[this.draggingIndex]);
+        let dragPoint = this.points[this.draggingIndex];
         
         // Prima controlla se stiamo chiudendo la curva
         if (!this.isClosed) {
-            let firstPoint = this.rotablePoint(this.points[0]);
+            let firstPoint = this.points[0];
             let d = dist(dragPoint.x, dragPoint.y, firstPoint.x, firstPoint.y);
             
             if (d < this.mergeThreshold && this.draggingIndex !== 0) {
@@ -609,7 +610,7 @@ class PolylineEditor {
             for (let i = 0; i < this.points.length; i++) {
                 if (i === this.draggingIndex) continue;
                 
-                let point = this.rotablePoint(this.points[i]);
+                let point = this.points[i];
                 let d = dist(dragPoint.x, dragPoint.y, point.x, point.y);
                 
                 if (d < this.mergeThreshold) {
@@ -628,22 +629,18 @@ class PolylineEditor {
     }
 
 	findNearestClosedCurve(point) {
-		let pp = this.rotablePoint(point);
 		console.log("\nPunto trascinato:");
 		console.log("- Originale:", point);
-		console.log("- Ruotato:", pp);
 		console.log("- Punto zero di riferimento: (0,0)");
 		
 		for (let i = 0; i < this.points.length; i++) {
 			if (i === this.draggingIndex) continue;
 			
 			let curvePoint = this.points[i];
-			let rotatedPoint = this.rotablePoint(curvePoint);
-			let d = dist(pp.x, pp.y, rotatedPoint.x, rotatedPoint.y);
+			let d = dist(point.x, point.y, curvePoint.x, curvePoint.y);
 			
 			console.log(`\nConfrontando con punto ${i}:`);
 			console.log("- Originale:", curvePoint);
-			console.log("- Ruotato:", rotatedPoint);
 			console.log("- Distanza:", d);
 			
 			if (d < this.mergeThreshold) {
@@ -684,11 +681,16 @@ class PolylineEditor {
     }
 	
 	rotablePoint(p){
+		let q = {x:0, y:0};
 		if(boardData.radarData.rot){// calcola il passaggio dei vertici dal riferimento ruotato al non ruotato
-			p.x = -p.x;
-			p.y = this.height - p.y;
+			let px = -p.x;
+			let py = this.height - p.y;
+			q = {x:px, y:py};
+		}else{
+			q = {x:p.x, y:p.y};
 		}
-		return p;
+		//console.log("q: "+q.x+" - "+q.y);
+		return q;
 	}
 
 	checkInside(x, y) {
@@ -698,8 +700,8 @@ class PolylineEditor {
 		let j = this.points.length - 1;
 	
 		for (let i = 0; i < this.points.length; i++) {
-			let pi = this.rotablePoint(this.points[i]);
-			let pj = this.rotablePoint(this.points[j]);
+			let pi = this.points[i];
+			let pj = this.points[j];
 	
 			if (((-pi.y > -y) != (-pj.y > -y)) &&
 				(x < (pj.x - pi.x) * (-y - -pi.y) / (-pj.y - -pi.y) + pi.x)) {
@@ -714,6 +716,9 @@ class PolylineEditor {
 	draw() {
 		if(this.enabled){
 			this.scalexy();
+			//console.log("this.mouseX: "+this.mouseX+" this.mouseY: "+this.mouseY);
+			//circle(mouseX, mousey, this.mergeThreshold * 2);
+			//circle(this.mouseX, -this.mousey, this.mergeThreshold * 2);
 			// Prima disegniamo l'evidenziazione se il mouse è dentro
 			if (this.editMode && this.isClosed) {
 				if (this.isPointInside(this.mouseX, this.mouseY) || this.isDraggingWhole) {
@@ -723,7 +728,7 @@ class PolylineEditor {
 					// disegna i punti
 					for (let point of this.points) {
 						let pp = this.rotablePoint(point);
-						vertex(pp.x, -pp.y);
+						vertex(pp.x, pp.y);
 					}
 					endShape(CLOSE);
 					cursor('grab');
@@ -775,7 +780,7 @@ class PolylineEditor {
 					
 					// Mostra indici e coordinate dei punti
 					fill(255);
-					let pm = this.getPointInMeters(pp);
+					let pm = this.getPointInMeters(point);
 					textAlign(CENTER, BOTTOM);
 					text(`${i}`, pp.x, -(pp.y - this.vertexRadius));
 					textAlign(LEFT, CENTER);
@@ -795,7 +800,7 @@ class PolylineEditor {
 					// Mostra distanze dai punti vicini
 					for (let i = 0; i < this.points.length; i++) {
 						if (i !== this.draggingIndex) {
-							let other = this.rotablePoint(this.points[i]);
+							let other = this.points[i];
 							let d = dist(current.x, current.y, other.x, other.y);
 							if (d < this.mergeThreshold * 2) {
 								stroke(0, 255, 0);
@@ -1121,7 +1126,6 @@ const commandMap = {
 				setElem("areasel", '', '');
 				setElem("areaenable", '', '');
 				updateInputsFromBoardDataRegion();
-				//updateBoardUI();
 			},
 		},
 		timestamp: () => {
@@ -1186,7 +1190,7 @@ function connectToBroker() {
 				});
 				backuptimer.start();
 			}else{
-				backuptimer.stop();
+				//backuptimer.stop();
 				backuptimer = null;
 			}
 		});
@@ -1319,6 +1323,8 @@ alertUserIot("red");
 // Initial connection attempt
 connectToBroker();
 setInputListeners();
+// update boardData region from state feedback
+		
 
 // window.onload = pubReadAtt(boardId, "allState");
 		
@@ -1512,15 +1518,10 @@ function setInputListeners() {
 		radarstate.style.backgroundColor = "#E67E22"; // activate the wait signal for command feedback
 	}
 	/// RADAR AREA CONFIG  ///////////////////////////////////////////////////////////////////////////////////////
-	//let x0= areavertices.querySelector('.x0');// Trova la classe dell'oggetto di input da leggere ogni evento utente
-	//let y0= areavertices.querySelector('.y0');
-	//let x1= areavertices.querySelector('.x1');
-	//let y1= areavertices.querySelector('.y1');
 	let areatypesel = document.getElementById('areatypesel');// Trova l'id del contenitore grid degli inputlet areavertices = document.getElementById('areavertices');// Trova l'id del contenitore grid degli input
 	let areaenable = document.getElementById('areaenable');// Trova l'id del contenitore grid degli input
 	let areaenablesel = areaenable.querySelector('.sel');
 	let areatypeselsel = areatypesel.querySelector('.sel');
-	//dataentry = [x0, y0, x1, y1, areaenablesel, areatypeselsel];
 	dataentry = [areaenablesel, areatypeselsel];
 
 	let areasel = document.getElementById('areasel');
@@ -1606,15 +1607,9 @@ function setInputListeners() {
 		let r = boardData.radarData.regions;
 		if(boardData.radarData.rot == 0){
 			boardData.radarData.rot = 1;
-			for(i=0; i<3; i++){
-				r.dar[i].setRotation(true);
-			}
 			radarinvertxt.value = "Ruotata";
 		}else{
 			boardData.radarData.rot = 0;
-			for(i=0; i<3; i++){
-				r.dar[i].setRotation(false);
-			}
 			radarinvertxt.value = "Non ruotata";
 		}
 		//doRotTransition();
@@ -1679,6 +1674,12 @@ function setup() {
 		new PolylineEditor([], width, height, colors[3], "Area 5", 10),
 		new PolylineEditor([], width, height, colors[4], "Area 6", 10)
 	];
+
+	plns = r.polilines;
+	for(i=0; i<plns.length; i++){
+		r.dar[i].importPointsInMeters(plns[i]);
+		r.dar[i].enabled = r.enabled[i];
+	}	
 	
 	console.log("width: "+width);
 	console.log("height: "+height);
@@ -1726,7 +1727,7 @@ function draw() {
 			// Disegna il punto
 			fill(0, 255, 0);
 			noStroke();
-			if(scaledX || scaledY){
+			if(scaledX || scaledY && scaledY != -height ){
 				ellipse(scaledX, scaledY, 10, 10);
 				// Etichette
 				fill(255);
@@ -1739,7 +1740,6 @@ function draw() {
 			//text(`Y: ${y}`, scaledX + 5, scaledY - 10+boardData.radarData.rot*20);
 		}
 	}
-	
 }
 
 function drawGrid() {
