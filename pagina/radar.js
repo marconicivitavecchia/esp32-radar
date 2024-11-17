@@ -244,7 +244,7 @@ class PolylineEditor {
 	}
 
 	clearFigure() {
-		if (this.points.length > 0) {
+		if (this.points.length > 0 && this.editMode) {
 			console.log("Clearing figure");  // debug
 			this.points = [];
 			this.isClosed = false;
@@ -943,6 +943,9 @@ class PolylineEditor {
     }
 
 	importPointsInMeters(list, scale=1){
+		console.log("imports "+this.label);
+		console.log(this.points);
+		this.points = [];
 		if (list.length != 0){
 			let parr = list.map((p) => {	
 				let xv = Number(p[0])*scale;
@@ -1223,6 +1226,7 @@ const commandMap = {
 				setElem("areavertices", '', '');
 				setElem("areasel", '', '');
 				setElem("areaenable", '', '');
+				setElem("areareset", '', '');
 				updateInputsFromBoardDataRegion();
 			},
 		},
