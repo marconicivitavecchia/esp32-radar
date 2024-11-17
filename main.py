@@ -2,6 +2,7 @@ from machine import UART
 from machine import reset as machine_reset
 #from bme680 import *
 from utils import *
+import sys
 
 
 # Manage debug
@@ -38,10 +39,17 @@ print("Configuring serial...")
 default_config = {
     'poll_time': 2000,
     'serial_speed': 256000,
+    'radarmode': 1,
     'regions': [
         {"enabled": 0, "narea": 1, "type": 0, "shape": 0, "points":[]},
         {"enabled": 0, "narea": 2, "type": 0, "shape": 0, "points":[]},
-        {"enabled": 0, "narea": 3, "type": 0, "shape": 0, "points":[]}
+        {"enabled": 0, "narea": 3, "type": 0, "shape": 0, "points":[]},
+        {"enabled": 0, "narea": 4, "type": 0, "shape": 0, "points":[]},
+        {"enabled": 0, "narea": 5, "type": 0, "shape": 0, "points":[]},
+        {"enabled": 0, "narea": 6, "type": 0, "shape": 0, "points":[]},
+        {"enabled": 0, "narea": 7, "type": 0, "shape": 1, "points":[]},
+        {"enabled": 0, "narea": 8, "type": 0, "shape": 1, "points":[]},
+        {"enabled": 0, "narea": 9, "type": 0, "shape": 1, "points":[]}
     ]
 }
 
@@ -53,11 +61,11 @@ if config:
         pollTime = config.get('poll_time')
         save_config('config.json',config)
     pollTime = int(pollTime)
-       
+    
     radarvel = config.get('serial_speed')
     if not radarvel:
         config.update({"serial_speed": 9600})
-        radarvel = configget_regionFromRAM.get('serial_speed')
+        radarvel = config.get('serial_speed')
         save_config('config.json',config)
     radarvel = int(radarvel) 
         
@@ -70,6 +78,10 @@ else:
     print("DEFAULT radar_config: ", default_config)
     
 radaregions = config.get('regions', default_config)
+if len(radaregions) < 9:
+    config['regions'] = default_config['regions']
+    save_config('config.json', default_config)
+    radaregions = config.get('regions', default_config)
 #test_speeds = [9600, 19200, 38400, 57600, 115200, 230400, 256000, 460800]
 #for speed in test_speeds:
 #radarvel = 115200 # CAMBIA QUESTA VELOCITA'. Quando hai trovato la imposti nella pagina e poi commenti la riga
@@ -162,6 +174,7 @@ print('Scan i2c bus...')
 time.sleep(1)
 #radar.read_all_info(radaregions)
 radar.load_regions(radaregions)
+print("config: ",config)
 radar.set_reporting(int(config['radarmode']))
 # Partial JSON of the single states that are retrieved in PULL mode from the web interface
 # upon receipt of a status request command
@@ -284,13 +297,14 @@ def scrivi_radarFactory(valore):
 
 def scrivi_tipo_area(val):
     global config
+    print(f"Scrivi_tipo_area a {val}")
     r = radar.set_filtermode_region(val)
     config['regions'] = r
-    print('rrrrrr: ',r)
     save_config('config.json', config)
     leggi_regioni()
     
 def disable_region(area): #0x02
+    print("Disabilita regione: ", area)
     global config
     r = radar.disable_region(area)
     config['regions'] = r
@@ -299,31 +313,44 @@ def disable_region(area): #0x02
     
 def disable_all_region(): #0x02
     global config
+    print("ds1")
     r = radar.disable_all_regions()
+    print("ds2")
     config['regions'] = r
+    print("ds3")
     save_config('config.json', config)
+    print("ds4")
     leggi_regioni()
+    print("ds5")
 
 def delete_all_regions(val):
     global config
+    print("de1")
     r = radar.delete_all_regions()# imposta le regioni di default nel dispositivo
-    save_config('config.json', config)# imposta le regioni di default nella MCU 
+    print("de2")
+    save_config('config.json', config)# imposta le regioni di default nella MCU
+    print("de3")
     leggi_regioni()
+    print("de4")
      
 def enable_region(area): #0x02
     global config
+    print("Abilita regione: ", area)
     r = radar.enable_region(area)# restituisce TUTTE le regioni sul dispositivo
+    print("Salva regione")
     config['regions'] = r
     save_config('config.json', config)# sincronizza le regioni sulla MCU con quelle MODIFICATE sul dispositivo
+    print("Leggi regioni")
     leggi_regioni()
 
 def scrivi_regioni(val):
     global config
-    print("Scrivi regioni")
+    print("Scrivi regioni: ", val)
     val2 = radar.set_region(val)# restituisce TUTTE le regioni sul dispositivo
     config['regions'] = val2
     save_config('config.json', config)# sincronizza le regioni sulla MCU con quelle MODIFICATE sul dispositivo
     leggi_regioni()
+       
 # FEEDBACKS ---------------------------------------------------------------------------------------------------
 def leggi_radarState():
     print("Leggi radarstate")
@@ -449,9 +476,10 @@ beta = 0.25
 #pollTime = 2000
 
 while not ok:
-    try:
+    #try:
         # WiFi configuration
-        (ip, wlan_mac, sta_if) = wifi_connect2(WIFI_SSID1, WIFI_PASSWORD1, WIFI_SSID2, WIFI_PASSWORD2)
+    (ip, wlan_mac, sta_if) = wifi_connect2(WIFI_SSID1, WIFI_PASSWORD1, WIFI_SSID2, WIFI_PASSWORD2)
+    try:    
         print(" Connected!")
         print(f"ip: {ip}, mac: {bin2hex(wlan_mac)}")
         esp32_unique_id = MQTT_CLIENT_ID + bin2hex(wlan_mac)
@@ -473,7 +501,7 @@ while not ok:
         print("NTP connected.")
         ok = True
     except OSError as e:
-        print(e)
+        print("Errore", e)
         i += 1
         time.sleep(i)
 
@@ -603,9 +631,20 @@ while True:
             print("Riacceso radar")
             t2.stop()
             S_ON.value(1)
-        """
+        """ 
+    #except KeyboardInterrupt:
+        
+        #client.disconnect()
+        #print("Mqtt port closed.")
     except ValueError as ve:
+        sys.print_exception(e)
         print(ve)
+        client.disconnect()
     except OSError as e:
-                print(e)    
-            #time.sleep(5)
+        sys.print_exception(e)
+        client.disconnect()
+        print(e)    
+    except Exception as e:
+        sys.print_exception(e)
+
+

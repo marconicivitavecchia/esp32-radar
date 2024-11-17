@@ -6,9 +6,15 @@ class Radar:
     def __init__(self, uart):
         self.uart = uart
         self._regions = [
-            {"enabled": 0, "narea": 1, "type": 0, "shape": 0, "points":[[0, 0], [0, 0], [0, 0]]},
-            {"enabled": 0, "narea": 2, "type": 0, "shape": 0, "points":[[0, 0], [0, 0], [0, 0]]},
-            {"enabled": 0, "narea": 3, "type": 0, "shape": 0, "points":[[0, 0], [0, 0], [0, 0]]}
+            {"enabled": 0, "narea": 1, "type": 0, "shape": 0, "points":[]},
+            {"enabled": 0, "narea": 2, "type": 0, "shape": 0, "points":[]},
+            {"enabled": 0, "narea": 3, "type": 0, "shape": 0, "points":[]},
+            {"enabled": 0, "narea": 4, "type": 0, "shape": 0, "points":[]},
+            {"enabled": 0, "narea": 5, "type": 0, "shape": 0, "points":[]},
+            {"enabled": 0, "narea": 6, "type": 0, "shape": 0, "points":[]},
+            {"enabled": 0, "narea": 7, "type": 0, "shape": 1, "points":[]},
+            {"enabled": 0, "narea": 8, "type": 0, "shape": 1, "points":[]},
+            {"enabled": 0, "narea": 9, "type": 0, "shape": 1, "points":[]}
         ]
         # Definizione delle costanti in MicroPython
         self.COMMAND_HEADER = bytes.fromhex('FDFCFBFA')
@@ -43,8 +49,7 @@ class Radar:
             'type': [],
             'enabled': [],
             'shape': [],
-            'polilines': [
-            ]            
+            'polilines': []            
         }
         dim = len(self._regions)
         for i in range(dim):  # Ciclo per 3 regioni
@@ -52,66 +57,95 @@ class Radar:
             result['type'].append(self._regions[i]["type"])
             result['enabled'].append(self._regions[i]["enabled"])
             rect = self._regions[i]["points"]
-            rect = [[p[0]/10, p[1]/10] for p in rect]
+            #rect = [[p[0]/10, p[1]/10] for p in rect]
             result['polilines'].append(rect)    
         return result
        
     def get_regionFromRAM(self, index):# 0x06
         result = {
-            'narea': [],
-            'type': [],
-            'enabled': [],
-            'shape': [],
+            'narea': 0,
+            'type': 0,
+            'enabled': 0,
+            'shape': 0,
             'polilines': [
             ]            
         }
         result['narea'] = self._regions[index]["narea"]
         result['type'] = self._regions[index]["type"]
         result['enabled'] = self._regions[index]["enabled"]
-        rect = self._regions[i]["points"]
-        rect = [[p[0]/10, p[1]/10] for p in rect]
-        result['polilines'].append(rect)    
+        rect = self._regions[index]["points"]
+        #result['polilines'] = [[p[0]/10, p[1]/10] for p in rect]
         return result
     
     def load_regions(self, reg):
         self._regions = reg
+        if self.enable_configuration_mode():
+            rgs = self._regions
+            #self.set_zone_filtering(rgs[6].type, rgs[6]['points'][0][0], rgs[6]['points'][0][1], rgs[6]['points'][1][0], rgs[6]['points'][1][1],  rgs[7]['points'][0][0], rgs[1]['points'][7][1], rgs[7]['points'][1][0], rgs[7]['points'][1][1],  rgs[8]['points'][0][0], rgs[8]['points'][1][1], rgs[8]['points'][1][0], rgs[8]['points'][1][1])
+            self.end_configuration_mode()  
     
     def set_region(self, v):# 0x04
         """
         v = {
             'narea': 0,
             'type': 0,
-            'shape': [],
+            'shape': 0,
             'points': []    
         }
         """
         # modifica la sequenza memorizzata sul microcontrollore
         index = int(v["narea"]) - 1
 
-        if index >= 0 and index < 3:
-            #self.regions[index] = v
+        if index >= 0 and index < len(self._regions):
+            #self._regions[index] = v
             self._regions[index]["narea"] = int(v["narea"])
             self._regions[index]["type"] = int(v["type"])
             self._regions[index]["enabled"] = int(v["enabled"])
-            self._regions[index]["shape"] = int(v["shape"])     
-            self._regions[index]["points"] = v["points"]
-            self._regions[index]["points"] = [[self.limit_value(int(float(p[0])*10)), self.limit_value(int(float(p[1])*10))] for p in self._regions[index]["points"]]
+            self._regions[index]["shape"] = int(v["shape"])
+            self._regions[index]["points"] = v["polilines"]
             
-            """
-            self.regions[index]["x0"] = self.limit_value(int(float(v["x0"])*10))
-            self._regions[index]["y0"] = self.limit_value(int(float(v["y0"])*10))
-            
-            self._regions[index]["x1"] = self.limit_value(int(float(v["x0"])*10))
-            self.regions[index]["y1"] = self.limit_value(int(float(v["y1"])*10))
-            
-            self.regions[index]["x2"] = self.limit_value(int(float(v["x1"])*10))
-            self.regions[index]["y2"] = self.limit_value(int(float(v["y1"])*10))
-            
-            self.regions[index]["x3"] = self.limit_value(int(float(v["x0"])*10))
-            self.regions[index]["y3"] = self.limit_value(int(float(v["y1"])*10))
-            """     
-        #if not int(v["enabled"]):
-        #    self.regions[index]["type"] = 0x00
+            #self._regions[index]["points"] = [[self.limit_value(int(float(x)*10)), self.limit_value(int(float(y)*10))] for [x,y] in self._regions[index]["points"]]
+            if self._regions[index]["shape"] == 1 and self._regions[index]["enabled"]:
+                if self.enable_configuration_mode():
+                    rgs = self._regions
+                    tp = rgs[6]['type']
+                    if tp < 0:                   
+                        tp = 0
+                    if tp > 1:                   
+                        tp = 1
+                        
+                    rgs = self._regions
+                    print(rgs)
+                   
+                    if rgs[6]['points']:
+                        region1_x1 = int(rgs[6]['points'][0][0]*1000)
+                        region1_y1 = int(rgs[6]['points'][0][1]*1000)
+                        region1_x2 = int(rgs[6]['points'][1][0]*1000)
+                        region1_y2 = int(rgs[6]['points'][1][1]*1000)
+                    else:
+                        region1_x1 = region1_y1 = region1_x2 = region1_y2 = int(0)
+                        
+                    if rgs[7]['points']:
+                        region2_x1 = int(rgs[7]['points'][0][0]*1000)
+                        region2_y1 = int(rgs[7]['points'][0][1]*1000)
+                        region2_x2 = int(rgs[7]['points'][1][0]*1000)
+                        region2_y2 = int(rgs[7]['points'][1][1]*1000)
+                    else:
+                        region2_x1 = region2_y1 = region2_x2 = region2_y2 = int(0)
+                        
+                    if rgs[8]['points']:
+                        region3_x1 = int(rgs[8]['points'][0][0]*1000)
+                        region3_y1 = int(rgs[8]['points'][0][1]*1000)
+                        region3_x2 = int(rgs[8]['points'][1][0]*1000)
+                        region3_y2 = int(rgs[8]['points'][1][1]*1000)
+                    else:
+                        region3_x1 = region3_y1 = region3_x2 = region3_y2 = int(0)
+                        
+                    print('s1')    
+                    self.set_zone_filtering(tp+1, region1_x1, region1_y1, region1_x2, region1_y2,  region2_x1, region2_y1, region2_x2, region2_y2,  region3_x1, region3_y1, region3_x2, region3_y2)
+                    print('s2') 
+                    self.end_configuration_mode()
+                    print('s3') 
         return self._regions
     
     def set_filtermode_region(self, v): #0x02
@@ -129,45 +163,144 @@ class Radar:
         mode = int(v["type"])
         
         if 0 <= mode <= 2:
-            index = narea - 1 # Indice array di dizionari
             self._regions[index]["type"] = mode
         return self._regions
     
     def disable_region(self, narea): #0x02
         index = int(narea) - 1
-        if 0 <= index <= 2:
+        if 0 <= index <= len(self._regions):
             index = narea - 1 # Indice array di dizionari
+            rgs = self._regions
             self._regions[index]["enabled"] = 0
+            if self._regions[index]["shape"] == 1:
+                if self.enable_configuration_mode():                   
+                    print(rgs)                   
+                    if rgs[6]['points']:
+                        region1_x1 = int(rgs[6]['points'][0][0]*1000)
+                        region1_y1 = int(rgs[6]['points'][0][1]*1000)
+                        region1_x2 = int(rgs[6]['points'][1][0]*1000)
+                        region1_y2 = int(rgs[6]['points'][1][1]*1000)
+                    else:
+                        region1_x1 = region1_y1 = region1_x2 = region1_y2 = int(0)
+                        
+                    if rgs[7]['points']:
+                        region2_x1 = int(rgs[7]['points'][0][0]*1000)
+                        region2_y1 = int(rgs[7]['points'][0][1]*1000)
+                        region2_x2 = int(rgs[7]['points'][1][0]*1000)
+                        region2_y2 = int(rgs[7]['points'][1][1]*1000)
+                    else:
+                        region2_x1 = region2_y1 = region2_x2 = region2_y2 = int(0)
+                        
+                    if rgs[8]['points']:
+                        region3_x1 = int(rgs[8]['points'][0][0]*1000)
+                        region3_y1 = int(rgs[8]['points'][0][1]*1000)
+                        region3_x2 = int(rgs[8]['points'][1][0]*1000)
+                        region3_y2 = int(rgs[8]['points'][1][1]*1000)
+                    else:
+                        region3_x1 = region3_y1 = region3_x2 = region3_y2 = int(0)
+                    
+                    if index == 6:
+                        region1_x1 = int(0)
+                        region1_y1 = int(0)
+                        region1_x2 = int(0)
+                        region1_y2 = int(0)
+                    elif index == 7:
+                        region2_x1 = int(0)
+                        region2_y1 = int(0)
+                        region2_x2 = int(0)
+                        region2_y2 = int(0)
+                    elif index == 8:
+                        region3_x1 = int(0)
+                        region3_y1 = int(0)
+                        region3_x2 = int(0)
+                        region3_y2 = int(0)
+                        
+                    self.set_zone_filtering(1, region1_x1, region1_y1, region1_x2, region1_y2,  region2_x1, region2_y1, region2_x2, region2_y2,  region3_x1, region3_y1, region3_x2, region3_y2)
+                    self.end_configuration_mode()  
         return self._regions
     
     def enable_region(self, narea): #0x02
+        print("area: ", narea)
+        
         index = int(narea) - 1
-        if 0 <= index <= 2:
+        print("2")
+        if 0 <= index <= len(self._regions):
             self._regions[index]["enabled"] = 1
-            self.set_region(self.get_regionFromRAM(index))
+            print("3")
+            #self.set_region(self.get_regionFromRAM(index))
+            print("4")
+            if self._regions[index]["shape"] == 1:
+                print("5")
+                if self.enable_configuration_mode():
+                    rgs = self._regions
+                    print(rgs)
+                   
+                    if rgs[6]['points']:
+                        region1_x1 = int(rgs[6]['points'][0][0]*1000)
+                        region1_y1 = int(rgs[6]['points'][0][1]*1000)
+                        region1_x2 = int(rgs[6]['points'][1][0]*1000)
+                        region1_y2 = int(rgs[6]['points'][1][1]*1000)
+                    else:
+                        region1_x1 = region1_y1 = region1_x2 = region1_y2 = int(0)
+                        
+                    if rgs[7]['points']:
+                        region2_x1 = int(rgs[7]['points'][0][0]*1000)
+                        region2_y1 = int(rgs[7]['points'][0][1]*1000)
+                        region2_x2 = int(rgs[7]['points'][1][0]*1000)
+                        region2_y2 = int(rgs[7]['points'][1][1]*1000)
+                    else:
+                        region2_x1 = region2_y1 = region2_x2 = region2_y2 = int(0)
+                        
+                    if rgs[8]['points']:
+                        region3_x1 = int(rgs[8]['points'][0][0]*1000)
+                        region3_y1 = int(rgs[8]['points'][0][1]*1000)
+                        region3_x2 = int(rgs[8]['points'][1][0]*1000)
+                        region3_y2 = int(rgs[8]['points'][1][1]*1000)
+                    else:
+                        region3_x1 = region3_y1 = region3_x2 = region3_y2 = int(0)
+                        
+                    self.set_zone_filtering(1, region1_x1, region1_y1, region1_x2, region1_y2,  region2_x1, region2_y1, region2_x2, region2_y2,  region3_x1, region3_y1, region3_x2, region3_y2)
+                    self.end_configuration_mode()
+            print("6")
         return self._regions
         
     def disable_all_regions(self): #0x02
-        for i in range(3):  
+        for i in range(0, 6):  
             area = i + 1
+            print("out region all disable")
             self.disable_region(area)
+            
+        for i in range(6, 9):  
+            area = i + 1
+            print("in region all disable")
+            if self.enable_configuration_mode():
+                print("zf0")
+                self.set_zone_filtering()
+                self.end_configuration_mode()
+                self._regions[i]["enabled"] = 0
+                
         return self._regions
 
     def delete_all_regions(self): #0x02
         self._regions = [
-            {"enabled": 0, "narea": 1, "type": 0, "shape": 0, "points":[[0, 0], [0, 0], [0, 0]]},
-            {"enabled": 0, "narea": 2, "type": 0, "shape": 0, "points":[[0, 0], [0, 0], [0, 0]]},
-            {"enabled": 0, "narea": 3, "type": 0, "shape": 0, "points":[[0, 0], [0, 0], [0, 0]]}
+            {"enabled": 0, "narea": 1, "type": 0, "shape": 0, "points":[]},
+            {"enabled": 0, "narea": 2, "type": 0, "shape": 0, "points":[]},
+            {"enabled": 0, "narea": 3, "type": 0, "shape": 0, "points":[]},
+            {"enabled": 0, "narea": 4, "type": 0, "shape": 0, "points":[]},
+            {"enabled": 0, "narea": 5, "type": 0, "shape": 0, "points":[]},
+            {"enabled": 0, "narea": 6, "type": 0, "shape": 0, "points":[]},
+            {"enabled": 0, "narea": 7, "type": 0, "shape": 1, "points":[]},
+            {"enabled": 0, "narea": 8, "type": 0, "shape": 1, "points":[]},
+            {"enabled": 0, "narea": 9, "type": 0, "shape": 1, "points":[]},
         ]
         
         self.disable_all_regions()
-        self.set_region(self.get_regionFromRAM(0))
-        self.set_region(self.get_regionFromRAM(1))
-        self.set_region(self.get_regionFromRAM(2))
+        #for i in len(self._regions):
+        #    self.set_region(self.get_regionFromRAM(i))
         return self._regions
     
     def read_all_info(self, reg):
-        self.regions = reg
+        self._regions = reg
         time.sleep(0.05)
         #self.get_regions()# sovrascrive tutti i campi di regions tranne enabled!
         #self.set_region(self.get_regionFromRAM(0))
@@ -221,6 +354,36 @@ class Radar:
     def from_unsigned_bytes(self, data):
         value = (data[0] | (data[1] << 8));  
         return value
+    
+    def to_signed_bytes(self, value):
+        """
+        Converte un numero intero in una sequenza di 2 bytes con segno.
+        Il bit più significativo (MSB) del secondo byte è il bit del segno:
+        1 per positivo, 0 per negativo (logica invertita rispetto allo standard)
+        
+        Args:
+            value (int): Il numero intero da convertire
+            
+        Returns:
+            bytes: Array di 2 bytes contenente la rappresentazione con segno
+        """
+        if value >= 0:
+            # Per numeri positivi
+            if value >= 2**15:
+                raise ValueError("Valore troppo grande per 15 bit")
+            # Il MSB sarà 1 (positivo nella logica invertita)
+            byte_high = ((value >> 8) & 0x7F) | 0x80  # Imposta il MSB a 1
+            byte_low = value & 0xFF
+        else:
+            # Per numeri negativi
+            if value < -(2**15):
+                raise ValueError("Valore troppo piccolo per 15 bit")
+            # Converte il numero negativo e imposta il MSB a 0
+            abs_value = abs(value)
+            byte_high = (abs_value >> 8) & 0x7F  # Mantiene il MSB a 0
+            byte_low = abs_value & 0xFF
+            
+        return bytes([byte_low, byte_high])
     
     def flushUart(self):
         num = self.uart.any()
@@ -477,7 +640,8 @@ class Radar:
         command_value = b'\x01\x00' if bluetooth_on else b'\x00\x00'
 
         response = self._send_command(intra_frame_length, command_word, command_value)
-        command_successful = self._get_command_success(response)
+        command_successful = self.get_command_success(response)
+       
         if command_successful:
             print(f'Bluetooth {"enabled" if bluetooth_on else "disabled"}')
         else:
@@ -503,41 +667,170 @@ class Radar:
         else:
             print('Get MAC address failed')
             return None
+    """
+        def query_zone_filtering(self)->tuple[13]:
+            '''
+            Query the zone filtering mode of the ra- region1_x1 (int): x coordinate of the first diagonal vertex of region 1
+        - region1_y1 (int): y coordinate of the first diagonal vertex of region 1
+        - region1_x2 (int): x coordinate of the second diagonal vertex of region 1
+        - region1_y2 (int): y coordinate of the second diagonal vertex of region 1
+        - region2_x1 (int): x coordinate of the first diagonal vertex of region 2
+        - region2_y1 (int): y coordinate of the first diagonal vertex of region 2
+        - region2_x2 (int): x coordinate of the second diagonal vertex of region 2
+        - region2_y2 (int): y coordinate of the second diagonal vertex of region 2
+        - region3_x1 (int): x coordinate of the first diagonal vertex of region 3
+        - region3_y1 (int): y coordinate of the first diagonal vertex of region 3
+        - region3_x2 (int): x coordinate of the second diagonal vertex of region 3
+        - region3_y2 (int): y coordinate of the second diagonal vertex of region 3dar (see docs 2.2.12)
+            Returns:
+            - region_coordinates (tuple): the coordinates of the zone filtering regions
+            '''
+            intra_frame_length = (2).to_bytes(2, 'little')
+            command_word = b'\xC1\x00'
+            command_value = b''
 
+            response = self._send_command(intra_fra- region1_x1 (int): x coordinate of the first diagonal vertex of region 1
+        - region1_y1 (int): y coordinate of the first diagonal vertex of region 1
+        - region1_x2 (int): x coordinate of the second diagonal vertex of region 1
+        - region1_y2 (int): y coordinate of the second diagonal vertex of region 1
+        - region2_x1 (int): x coordinate of the first diagonal vertex of region 2
+        - region2_y1 (int): y coordinate of the first diagonal vertex of region 2
+        - region2_x2 (int): x coordinate of the second diagonal vertex of region 2
+        - region2_y2 (int): y coordinate of the second diagonal vertex of region 2
+        - region3_x1 (int): x coordinate of the first diagonal vertex of region 3
+        - region3_y1 (int): y coordinate of the first diagonal vertex of region 3
+        - region3_x2 (int): x coordinate of the second diagonal vertex of region 3
+        - region3_y2 (int): y coordinate of the second diagonal vertex of region 3me_length, command_word, command_value)
+            command_successful = self._get_command_success(response)
+            if command_successful:
+                zone_filtering_mode = int.from_bytes(response[10:12], 'little', True)
+                region1_x1 = int.from_bytes(response[12:14], 'little', True)
+                region1_y1 = int.from_bytes(response[14:16], 'little', True)
+                region1_x2 = int.from_bytes(response[16:18], 'little', True)
+                region1_y2 = int.from_bytes(response[18:20], 'little', True)
+                region2_x1 = int.from_bytes(response[20:22], 'little', True)
+                region2_y1 = int.from_bytes(response[22:24], 'little', True)
+                region2_x2 = int.from_bytes(response[24:26], 'little', True)
+                region2_y2 = int.from_bytes(response[26:28], 'little', True)
+                region_coordinates = (
+                    (region1_x1, region1_y1, region1_x2, region1_y2),
+                    (region2_x1, region2_y1, region2_x2, region2_y2)
+                )
+                print(f'Zone filtering mode: {zone_filtering_mode}')
+                print(f'Region 1: {region_coordinates[0]}')
+                print(f'Region 2: {region_coordinates[1]}')
+                return region_coordinates
+            else:
+                print('Query zone filtering failed')
+                return None
+     """       
     def query_zone_filtering(self)->tuple[13]:
         '''
-        Query the zone filtering mode of the radar (see docs 2.2.12)
+        Query the current zone filtering mode of the radar (see docs 2.2.12)
+        Parameters:
+        - ser (serial.Serial): the serial port object
         Returns:
-        - region_coordinates (tuple): the coordinates of the zone filtering regions
+        - zone_filtering_mode (tuple[13):
+            [0] zone_filtering_mode (int): 0 for no zone filtering, 1 detect only set region, 2 do not detect set region
+            [1-4] region 1 diagonal vertices coordinates (int): x1, y1, x2, y2 
+            [5-8] region 2 diagonal vertices coordinates (int): x1, y1, x2, y2
+            [9-12] region 3 diagonal vertices coordinates (int): x1, y1, x2, y2
         '''
         intra_frame_length = (2).to_bytes(2, 'little')
         command_word = b'\xC1\x00'
-        command_value = b''
-
+        command_value = b''   
         response = self._send_command(intra_frame_length, command_word, command_value)
         command_successful = self._get_command_success(response)
+        
         if command_successful:
-            zone_filtering_mode = int.from_bytes(response[10:12], 'little', True)
-            region1_x1 = int.from_bytes(response[12:14], 'little', True)
-            region1_y1 = int.from_bytes(response[14:16], 'little', True)
-            region1_x2 = int.from_bytes(response[16:18], 'little', True)
-            region1_y2 = int.from_bytes(response[18:20], 'little', True)
-            region2_x1 = int.from_bytes(response[20:22], 'little', True)
-            region2_y1 = int.from_bytes(response[22:24], 'little', True)
-            region2_x2 = int.from_bytes(response[24:26], 'little', True)
-            region2_y2 = int.from_bytes(response[26:28], 'little', True)
-            region_coordinates = (
-                (region1_x1, region1_y1, region1_x2, region1_y2),
-                (region2_x1, region2_y1, region2_x2, region2_y2)
-            )
+            zone_filtering_mode = self.from_signed_bytes(response[10:12])
+            region1_x1 = self.from_signed_bytes(response[12:14])
+            region1_y1 = self.from_signed_bytes(response[14:16])
+            region1_x2 = self.from_signed_bytes(response[16:18])
+            region1_y2 = self.from_signed_bytes(response[18:20])
+            region2_x1 = self.from_signed_bytes(response[20:22])
+            region2_y1 = self.from_signed_bytes(response[22:24])
+            region2_x2 = self.from_signed_bytes(response[24:26])
+            region2_y2 = self.from_signed_bytes(response[26:28])
+            region3_x1 = self.from_signed_bytes(response[28:30])
+            region3_y1 = self.from_signed_bytes(response[30:32])
+            region3_x2 = self.from_signed_bytes(response[32:34])
+            region3_y2 = self.from_signed_bytes(response[34:36])
             print(f'Zone filtering mode: {zone_filtering_mode}')
-            print(f'Region 1: {region_coordinates[0]}')
-            print(f'Region 2: {region_coordinates[1]}')
-            return region_coordinates
+            a = [zone_filtering_mode, 
+                    region1_x1, region1_y1, region1_x2, region1_y2,
+                    region2_x1, region2_y1, region2_x2, region2_y2,
+                    region3_x1, region3_y1, region3_x2, region3_y2]
+            print("MemReg: ", a)
+            return (zone_filtering_mode, 
+                    region1_x1, region1_y1, region1_x2, region1_y2,
+                    region2_x1, region2_y1, region2_x2, region2_y2,
+                    region3_x1, region3_y1, region3_x2, region3_y2)
         else:
-            print('Query zone filtering failed')
+            print('Query zone filtering mode failed')
             return None
 
+    def set_zone_filtering(self, zone_filtering_mode:int=0, 
+                       region1_x1:int=0, region1_y1:int=0, region1_x2:int=0, region1_y2:int=0,
+                       region2_x1:int=0, region2_y1:int=0, region2_x2:int=0, region2_y2:int=0,
+                       region3_x1:int=0, region3_y1:int=0, region3_x2:int=0, region3_y2:int=0
+                       )->bool:
+        print("Zf1")
+        '''
+        Set the zone filtering mode of the radar (see docs 2.2.13)
+        Parameters:
+        - ser (serial.Serial): the serial port object
+        - zone_filtering_mode (int): 0 for no zone filtering, 1 detect only set region, 2 do not detect set region
+        - region1_x1 (int): x coordinate of the first diagonal vertex of region 1
+        - region1_y1 (int): y coordinate of the first diagonal vertex of region 1
+        - region1_x2 (int): x coordinate of the second diagonal vertex of region 1
+        - region1_y2 (int): y coordinate of the second diagonal vertex of region 1
+        - region2_x1 (int): x coordinate of the first diagonal vertex of region 2
+        - region2_y1 (int): y coordinate of the first diagonal vertex of region 2
+        - region2_x2 (int): x coordinate of the second diagonal vertex of region 2
+        - region2_y2 (int): y coordinate of the second diagonal vertex of region 2
+        - region3_x1 (int): x coordinate of the first diagonal vertex of region 3
+        - region3_y1 (int): y coordinate of the first diagonal vertex of region 3
+        - region3_x2 (int): x coordinate of the second diagonal vertex of region 3
+        - region3_y2 (int): y coordinate of the second diagonal vertex of region 3
+        Returns:
+        - success (bool): True if the zone filtering mode was successfully set, False otherwise
+        '''
+        intra_frame_length = int(28).to_bytes(2, 'little')
+        print("Zf2")
+        command_word = bytes.fromhex('C2 00')
+        print("Zf3")
+        #command_value = bytes.fromhex(f'{zone_filtering_mode:04x} {region1_x1:04x} {region1_y1:04x} {region1_x2:04x} {region1_y2:04x} {region2_x1:04x} {region2_y1:04x} {region2_x2:04x} {region2_y2:04x} {region3_x1:04x} {region3_y1:04x} {region3_x2:04x} {region3_y2:04x}')
+        print(region1_x1)
+        print(region1_y1)
+        print(region1_x2)
+        print(region1_y2)
+        command_value = bytearray(26)
+        command_value[0:2] = int(1).to_bytes(2, 'little')
+        command_value[2:4] = self.to_signed_bytes(region1_x1)
+        command_value[4:6] = self.to_signed_bytes(region1_y1)
+        command_value[6:8] = self.to_signed_bytes(region1_x2)
+        command_value[8:10] = self.to_signed_bytes(region1_y2)
+        command_value[10:12] = self.to_signed_bytes(region2_x1)
+        command_value[12:14] = self.to_signed_bytes(region2_y1)
+        command_value[14:16] = self.to_signed_bytes(region2_x2)
+        command_value[16:18] = self.to_signed_bytes(region2_y2)
+        command_value[18:20] = self.to_signed_bytes(region3_x1)
+        command_value[20:22] = self.to_signed_bytes(region3_y1)
+        command_value[22:24] = self.to_signed_bytes(region3_x2)
+        command_value[24:26] = self.to_signed_bytes(region3_y2)
+        print("Zf4")
+        response = self._send_command(intra_frame_length, command_word, command_value)
+        print("Zf5")
+        command_successful = self._get_command_success(response)
+        print("Zf6")
+        if command_successful:
+            print(f'Zone filtering mode set to {zone_filtering_mode}')
+        else:
+            print('Set zone filtering mode failed')
+
+        return command_successful
+    
     def read_radar_data(self)->tuple[12]:
         '''
         Read the basic mode data from the serial port line (see docs 2.3)
@@ -582,7 +875,7 @@ class Radar:
                     #y = y if y >= 0 else -2**15 - y
                     #speed = speed if speed >= 0 else -2**15 - speed
 
-                    # append ftarget data to the list and flatten
+                    # append ftarget data to the list and flattento_signed_bytes(
                     all_targets_data.extend([x, y, speed, distance_resolution])
                 
                 return tuple(all_targets_data)
@@ -629,101 +922,79 @@ class Radar:
         distanza_quad = (x - cx) ** 2 + (y - cy) ** 2
         # Confronta con il quadrato del raggio
         return distanza_quad <= r ** 2
-        
+  
     def printTargets(self):
-        try:
-            all_target_values = self.read_radar_data()
-            
-            if all_target_values is None:
-                return
-            
-            #print(f'In mm: {all_target_values0} mm')
-            all_target_values = [x / 1000 for x in all_target_values]
-            #print(f'In m: {all_target_values} m')
-
-            target1_x, target1_y, target1_speed, target1_distance_res, \
-            target2_x, target2_y, target2_speed, target2_distance_res, \
-            target3_x, target3_y, target3_speed, target3_distance_res \
-                = all_target_values
-
-            # Print the interpreted information for all targets
-            #print(f'Target 1 x-coordinate: {target1_x} mm')
-            #print(f'Target 1 y-coordinate: {target1_y} mm')
-            #print(f'Target 1 speed: {target1_speed} cm/s')
-            #print(f'Target 1 distance res: {target1_distance_res} mm')
-
-            #print(f'Target 2 x-coordinate: {target2_x} mm')
-            #print(f'Target 2 y-coordinate: {target2_y} mm')
-            #print(f'Target 2 speed: {target2_speed} cm/s')
-            #print(f'Target 2 distance res: {target2_distance_res} mm')
-
-            #print(f'Target 3 x-coordinate: {target3_x} mm')
-            #print(f'Target 3 y-coordinate: {target3_y} mm')
-            #print(f'Target 3 speed: {target3_speed} cm/s')
-            #print(f'Target 3 distance res: {target3_distance_res} mm')
-
-            #print('-' * 30)get_reporting
-            
-            result = {
-                'lista_x': [target1_x, target2_x, target3_x],
-                'lista_y': [target1_y, target2_y, target3_y],
-                'lista_v': [target1_speed, target2_speed, target3_speed],
-                'lista_dr': [target1_distance_res, target2_distance_res, target3_distance_res],
-                'ntarget': [],
-            }
-             
-            nt = []
-            for i in range(len(self._regions)):
-                punti = self._regions[i]['points']
-                nt.append(0)
-                for j in range(3):
-                    px = result['lista_x'][j]
-                    py = result['lista_y'][j]
-                    
-                    if self._regions[i]['shape'] == 0 and (px!=0 or py!=0):# spezzata
-                        inside = self.punto_dentro_poligono(px, py, punti)
-                        if (inside and self.state != 1):
-                            nt[i] = 1
-                        if self._regions[i]['type']==1 or self._regions[i]['type']==2 and not inside:
-                            result['lista_x'][i] = 0
-                            result['lista_y'][i] = 0
-                            nt[i] = 0
-                                                    
-            self.ntargets = nt
-            result['ntarget'] = self.ntargets;
-            if self.state == 2:
-                result['lista_x'] = []
-                result['lista_y'] = []
-            return result
+        #try:
+        all_target_values = self.read_radar_data()
         
+        if all_target_values is None:
+            return
+        
+        #print(f'In mm: {all_target_values0} mm')
+        all_target_values = [x / 1000 for x in all_target_values]
+        #print(f'In m: {all_target_values} m')
+
+        target1_x, target1_y, target1_speed, target1_distance_res, \
+        target2_x, target2_y, target2_speed, target2_distance_res, \
+        target3_x, target3_y, target3_speed, target3_distance_res \
+            = all_target_values
+
+        # Print the interpreted information for all targets
+        #print(f'Target 1 x-coordinate: {target1_x} mm')
+        #print(f'Target 1 y-coordinate: {target1_y} mm')
+        #print(f'Target 1 speed: {target1_speed} cm/s')
+        #print(f'Target 1 distance res: {target1_distance_res} mm')
+
+        #print(f'Target 2 x-coordinate: {target2_x} mm')
+        #print(f'Target 2 y-coordinate: {target2_y} mm')
+        #print(f'Target 2 speed: {target2_speed} cm/s')
+        #print(f'Target 2 distance res: {target2_distance_res} mm')
+
+        #print(f'Target 3 x-coordinate: {target3_x} mm')
+        #print(f'Target 3 y-coordinate: {target3_y} mm')
+        #print(f'Target 3 speed: {target3_speed} cm/s')
+        #print(f'Target 3 distance res: {target3_distance_res} mm')
+
+        #print('-' * 30)get_reporting
+        
+        result = {
+            'lista_x': [target1_x, target2_x, target3_x],
+            'lista_y': [target1_y, target2_y, target3_y],
+            'lista_v': [target1_speed, target2_speed, target3_speed],
+            'lista_dr': [target1_distance_res, target2_distance_res, target3_distance_res],
+            'ntarget': [],
+        }
+         
+        nt = []
+        for i in range(len(self._regions)):
+            punti = self._regions[i]['points']
+            nt.append(0)
+            for j in range(3):
+                px = result['lista_x'][j]
+                py = result['lista_y'][j]
+                
+                if self._regions[i]['shape'] == 0 and (px!=0 or py!=0):# spezzata
+                    inside = self.punto_dentro_poligono(px, py, punti)
+                    if (inside and self.state != 1):
+                        nt[i] = 1
+                    if (self._regions[i]['type']==1 or self._regions[i]['type']==2 and not inside) and self._regions[i]['enabled']==1:
+                        result['lista_x'][i] = 0
+                        result['lista_y'][i] = 0
+                        nt[i] = 0
+                                                
+        self.ntargets = nt
+        result['ntarget'] = self.ntargets;
+        if self.state == 2:
+            result['lista_x'] = []
+            result['lista_y'] = []
+        return result
+        """
         except KeyboardInterrupt:
             # Close the serial port on keyboard interrupt
             self.uart.close()
             print("Serial port closed.")
-        
-        
-        
-        
         """
-        def verifica_sovrapposizione(px, py):
-            # Determina il quadrato del mouse
-            qx = int(px // self.resx)
-            qy = int(py // self.resy)
-            i = -1
-            
-            for i, obj enumerate(oggetti):
-                # Controlla in quale oggetto si trova il quadrato
-                if (qx, qy) in obj.blocks:
-                    return i
-            
-        def setGriglia(width, heigth, resx, resy):
-            self.gridWidth = width
-            self.gridHeigth = heigth
-            self.resx = resx
-            self.resy = resy
-            self.nw = int(self.gridWidth // res) 
-            self.nh = int(self.gridHeigth // res)
-        """       
-
-
-
+        
+        
+        
+    
