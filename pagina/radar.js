@@ -12,40 +12,16 @@ var boardData = {
 					fw: [0, 0],
 					radarmode: 0,
 					regions: {
-						narea: [1, 2, 3, 4, 5, 6],
-						ntarget: [0, 0, 0, 0, 0, 0],
-						shape: [0, 0, 0, 0, 0, 0],
-						type: [0, 0, 0, 0, 0, 0],
-						enabled: [1, 1, 0, 1, 1, 0],
+						narea: [1, 2, 3, 4, 5, 6, 7, 8, 9],
+						ntarget: [0, 0, 0, 0, 0, 0, 0, 0, 0],
+						shape: [0, 0, 0, 0, 0, 0, 0, 0, 0],
+						type: [0, 0, 0, 0, 0, 0, 0, 0, 0],
+						enabled: [1, 1, 1, 1, 1, 1, 1, 1, 1],
 						selected: 1,
 						polilines: [],
 						dar : [null, null, null, null, null, null],
 					}
 				},	
-				/*
-				radarData: {
-					x: [0, 0, 0, 0, 0],
-					y: [0, 0, 0, 0, 0],
-					rot: 0,
-					fw: [0, 0],
-					radarmode: 0,
-					regions: {
-						narea: [1, 2, 3, 4, 5, 6],
-						ntarget: [0, 0, 0, 0, 0, 0],
-						shape: [0, 0, 0, 0, 0, 0],
-						type: [0, 0, 0, 0, 0, 0],
-						enabled: [1, 1, 0, 1, 1, 0],
-						selected: 1,
-						polilines: [
-							[[10, 20], [15, 25], [20, 30]],
-							[[30, 40], [35, 45], [40, 50]],
-							[[50, 60], [55, 65], [60, 70]],
-							[[70, 80], [75, 85], [80, 90]]
-						],
-						dar : [null, null, null, null, null, null],
-					}
-				},
-				*/
 				tempData: {
 					temp: "N/A",
 					press: "N/A",
@@ -64,8 +40,6 @@ var boardData = {
 			
 var fw = "";
 var n = [0, 0, 0, 0]
-var width;
-var height;
 var mqttAttempts = 0;
 const maxMqttAttempts = 2;
 var backuptimer = null;
@@ -83,8 +57,8 @@ function alertUser(color){
 }
 
 class PolylineEditor {
-    constructor(points = null, width, height, defColor, label, radiusMeter) {
-		this.points = points || [];  // Se points è null, inizializza un array vuoto
+	constructor(points = null, width, height, defColor, label, radiusMeter, rect= false) {
+        this.points = points || [];  // Se points è null, inizializza un array vuoto
         if (!Array.isArray(this.points)) {
             this.points = [];        // Assicura che this.points sia sempre un array
         }
@@ -93,40 +67,47 @@ class PolylineEditor {
         this.dragOffsetY = 0;
         this.vertexRadius = 8;     // Raggio dei vertici per il rendering
         this.snapThreshold = 15;   // Distanza entro la quale si può selezionare un vertice
-		this.width = width;
+        this.width = width;
         this.height = height;
-		this.mouseX;
-		this.mouseY;
-		this.editMode = true;   
-		this.isClosed = false;     // Flag per indicare se la curva è chiusa
+        this.mouseX;
+        this.mouseY;
+        this.editMode = true;   
+        this.isClosed = false;     // Flag per indicare se la curva è chiusa
         this.mergeThreshold = 15;  // Distanza entro la quale unire i vertici
-		console.log("PolylineEditor: "+width+" - "+height);
-		// doppio click
-		this.lastClickTime = 0;          // per gestire il doppio click
+        // doppio click
+        this.lastClickTime = 0;          // per gestire il doppio click
         this.doubleClickDelay = 300;     // millisecondi tra i click
         this.lastClickPos = { x: 0, y: 0 }; // posizione dell'ultimo click
-		// drag
-		this.isDraggingWhole = false;    // flag per il drag dell'intera curva
+        // drag
+        this.isDraggingWhole = false;    // flag per il drag dell'intera curva
         this.dragStartX = 0;             // posizione iniziale per il drag
         this.dragStartY = 0;
-		//colore ed etichetta
-		this.areaColor = color(0, 0, 255, 30);  // colore default blu semi-trasparente
+        //colore ed etichetta
+        this.areaColor = color(0, 0, 255, 30);  // colore default blu semi-trasparente
         this.label = "";  // etichetta/numero dell'area
-		this.setAreaColor(defColor);
-		this.setLabel(label);
-		//flag creazione rettangoli
-		this.isCreatingRect = false;  // flag per la creazione del rettangolo
+        this.setAreaColor(defColor);
+        this.setLabel(label);
+        //flag creazione rettangoli
+        this.isCreatingRect = false;  // flag per la creazione del rettangolo
         this.rectStartPoint = null;   // punto iniziale del rettangolo
-		//mano libera
-		this.mode = 'freehand'; // 'freehand' o 'rectangle'
-		//this.setMode('rectangle');  // per creare rettangoli
-		//this.setMode('freehand');   // per tornare al disegno libero
-		// Oppure creare direttamente un rettangolo
-		//this.createRectangle(100, 100, 200, 150);
-		this.report = false;
-		this.radius = radiusMeter;
-		this.ratio = this.height/this.width*2;
-		this.enabled = false;
+        //mano libera
+        this.mode = 'freehand'; // 'freehand' o 'rectangle'
+        this.report = false;
+        this.radiusx = radiusMeter;
+        this.ratio = this.height/this.width*2;
+        this.radiusy = radiusMeter * this.ratio;
+        this.enabled = false;
+        // Modalità rettangolo scalabile
+        this.isScalingRect = rect;
+    }
+	
+	setScalingRectMode(enabled) {
+        if (this.isScalingRect === enabled) return;
+        
+        this.isScalingRect = enabled;
+        if (enabled) {
+            this.approximateToRectangle();
+        }
     }
 
 	mapInverse(value, start2, stop2, start1, stop1) {
@@ -135,6 +116,96 @@ class PolylineEditor {
 
 	map2(value, start1, stop1, start2, stop2) {
 		return (value - start1) * (stop2 - start2) / (stop1 - start1) + start2;
+	}
+
+	// Gestisce lo scaling proporzionale del rettangolo
+	handleRectScaling() {
+		// Il punto che stiamo trascinando
+		const dragPoint = this.points[this.draggingIndex];
+		
+		// Il punto opposto (che rimane fisso) è sempre a 2 posizioni di distanza nell'array
+		const oppositeIndex = ((this.draggingIndex + 2) % 4);
+		const oppositePoint = this.points[oppositeIndex];
+
+		// Calcola le nuove coordinate del punto trascinato relative al punto opposto
+		const newX = this.mouseX - this.dragOffsetX;
+		const newY = this.mouseY - this.dragOffsetY;
+		
+		// Calcola la differenza tra il nuovo punto e il punto opposto
+		const dx = newX - oppositePoint.x;
+		const dy = newY - oppositePoint.y;
+
+		// Calcola la nuova larghezza mantenendo il segno (positivo/negativo)
+		let newWidth = Math.abs(dx);
+		// Calcola la nuova altezza basata sull'aspect ratio originale
+		let newHeight = newWidth / this.originalAspectRatio;
+
+		// Determina in quale direzione stiamo scalando
+		const signX = dx >= 0 ? 1 : -1;
+		const signY = dy >= 0 ? 1 : -1;
+
+		// Aggiorna tutti i punti del rettangolo in base al vertice trascinato
+		switch (this.draggingIndex) {
+			case 0: // Top-left
+				this.points[0] = { 
+					x: oppositePoint.x - newWidth * signX,
+					y: oppositePoint.y - newHeight * signY 
+				};
+				this.points[1] = { 
+					x: oppositePoint.x,
+					y: this.points[0].y 
+				};
+				this.points[3] = { 
+					x: this.points[0].x,
+					y: oppositePoint.y 
+				};
+				break;
+
+			case 1: // Top-right
+				this.points[1] = { 
+					x: oppositePoint.x + newWidth * signX,
+					y: oppositePoint.y - newHeight * signY 
+				};
+				this.points[0] = { 
+					x: oppositePoint.x,
+					y: this.points[1].y 
+				};
+				this.points[2] = { 
+					x: this.points[1].x,
+					y: oppositePoint.y 
+				};
+				break;
+
+			case 2: // Bottom-right
+				this.points[2] = { 
+					x: oppositePoint.x + newWidth * signX,
+					y: oppositePoint.y + newHeight * signY 
+				};
+				this.points[1] = { 
+					x: this.points[2].x,
+					y: oppositePoint.y 
+				};
+				this.points[3] = { 
+					x: oppositePoint.x,
+					y: this.points[2].y 
+				};
+				break;
+
+			case 3: // Bottom-left
+				this.points[3] = { 
+					x: oppositePoint.x - newWidth * signX,
+					y: oppositePoint.y + newHeight * signY 
+				};
+				this.points[0] = { 
+					x: this.points[3].x,
+					y: oppositePoint.y 
+				};
+				this.points[2] = { 
+					x: oppositePoint.x,
+					y: this.points[3].y 
+				};
+				break;
+		}
 	}
 
 	setReport(yes){
@@ -146,7 +217,7 @@ class PolylineEditor {
 	}
 
 	approximateToRectangle() {
-		if (!this.isClosed || this.points.length < 3) return;
+		if (!this.editMode || !this.isClosed || this.points.length < 3) return;
 	
 		// Salva colore e etichetta
 		let originalColor = this.areaColor;
@@ -370,7 +441,7 @@ class PolylineEditor {
 		console.log("setResize: "+width+" - "+height);
 	}
 
-	scalexy() {
+	scalexy() {		
 		//console.log("scalexy: "+this.mouseX+" - "+this.mouseY);
 		if(boardData.radarData.rot){// calcola il passaggio dei vertici dal riferimento ruotato al non ruotato
 			this.mouseX = -(mouseX - this.width /2);
@@ -410,38 +481,33 @@ class PolylineEditor {
 		this.removePoint(this.points.length - 1);// rimuovi l'ultimo
 	}
 
-    mousePressed() {
+	mousePressed() {
+        if (this.points.length === 0 && mouseButton === LEFT && !this.editMode) {
+            this.startEditing();
+        }
+        if (Math.abs(this.mouseX) > this.width/2 || this.mouseY < 0) return;
+        
         if (!this.editMode) return;
-		this.scalexy();
-
-		// Se non ci sono punti, inizia a creare un rettangolo
-		console.log("this.points.length:", this.points.length);
+        this.scalexy();
+    
         if (this.points.length === 0 && mouseButton === LEFT) {
             this.isCreatingRect = true;
             this.rectStartPoint = { x: this.mouseX, y: this.mouseY };
-            // Crea un rettangolo iniziale di dimensione minima
+            
             let initialSize = 40;
-			this.points = [
-				{ x: this.mouseX, y: this.mouseY + initialSize },                     // top-left
-				{ x: this.mouseX + initialSize, y: this.mouseY + initialSize},       // top-right
-				{ x: this.mouseX + initialSize, y: this.mouseY  }, // bottom-right
-				{ x: this.mouseX, y: this.mouseY  }        // bottom-left
-			];
-			this.isClosed = true;  // impostiamo subito isClosed a true
-			this.isCreatingRect = false;  // non serve più, il rettangolo è già creato
-			console.log("Rettangolo creato, isClosed:", this.isClosed);
-			cursor('grab');
-            return;
-        }
-
-        // Gestione del completamento del rettangolo
-        if (this.isCreatingRect) {
-            this.isCreatingRect = false;
+            this.points = [
+                { x: this.mouseX, y: this.mouseY + initialSize },
+                { x: this.mouseX + initialSize, y: this.mouseY + initialSize},
+                { x: this.mouseX + initialSize, y: this.mouseY },
+                { x: this.mouseX, y: this.mouseY }
+            ];
             this.isClosed = true;
-            this.rectStartPoint = null;
+            this.isCreatingRect = false;
+    
+            cursor('grab');
             return;
         }
-
+    
         if (this.isClosed) {
             let isInside = this.isPointInside(this.mouseX, this.mouseY);
             if (isInside) {
@@ -452,97 +518,116 @@ class PolylineEditor {
                 return;
             }
         }
-
-        // ... resto del codice esistente
-		let nearestPoint = this.findNearestPoint(this.mouseX, this.mouseY);
-	
-		if (mouseButton === LEFT) {		
-			const currentTime = millis();	
-			// Gestione doppio click come prima
-			console.log("doppio1:");
-			if (nearestPoint.distance < this.snapThreshold) {
-				console.log("doppio2:");
-				if (currentTime - this.lastClickTime < this.doubleClickDelay) {
-					console.log("doppio3:");
-					if (this.points.length > 3) {
-						console.log("doppio4:");
-						this.points.splice(nearestPoint.index, 1);
-						this.lastClickTime = 0;
-						return;
-					}
-				} else {
-					this.lastClickTime = currentTime;
-				}
-			}
-
-			// Check per drag di punti singoli
-			if (nearestPoint.distance < this.snapThreshold) {
-				this.draggingIndex = nearestPoint.index;
-				this.dragOffsetX = this.mouseX - this.points[nearestPoint.index].x;
-				this.dragOffsetY = this.mouseY - this.points[nearestPoint.index].y;
-				cursor('grab');
-				return;
-			}
-
-			// Check per drag dell'intera curva
-			if (this.isClosed && this.isPointInside(this.mouseX, this.mouseY)) {
-				this.isDraggingWhole = true;
-				this.dragStartX = this.mouseX;
-				this.dragStartY = this.mouseY;
-				cursor('grab');
-				return;
-			}
-
-			// Resto del codice per inserimento punti...
-			let nearestSeg = this.findNearestSegment(this.mouseX, this.mouseY);
-			if (nearestSeg.distance < this.snapThreshold) {
-				this.insertPoint(nearestSeg.index + 1, nearestSeg.point.x, nearestSeg.point.y);
-				this.draggingIndex = nearestSeg.index + 1;
-				this.dragOffsetX = this.mouseX - nearestSeg.point.x;
-				this.dragOffsetY = this.mouseY - nearestSeg.point.y;
-				cursor('grab');
-				return;
-			}
-
-			if (!this.isClosed) {
-				this.addPoint(this.mouseX, this.mouseY);
-				this.draggingIndex = -1;
-				cursor(ARROW);
-			}
-		}
+    
+        let nearestPoint = this.findNearestPoint(this.mouseX, this.mouseY);
+    
+        if (mouseButton === LEFT) {
+            const currentTime = millis();
+            if (nearestPoint.distance < this.snapThreshold) {
+                if (currentTime - this.lastClickTime < this.doubleClickDelay) {
+                    if (this.points.length > 3) {
+                        this.points.splice(nearestPoint.index, 1);
+                        this.lastClickTime = 0;
+                        return;
+                    }
+                } else {
+                    this.lastClickTime = currentTime;
+                }
+            }
+    
+            if (nearestPoint.distance < this.snapThreshold) {
+                this.draggingIndex = nearestPoint.index;
+                
+                if (this.isScalingRect) {
+                    this.oppositeIndex = (this.draggingIndex + 2) % 4;
+                    this.oppositePoint = { ...this.points[this.oppositeIndex] };
+                }
+                
+                this.dragOffsetX = this.mouseX - this.points[nearestPoint.index].x;
+                this.dragOffsetY = this.mouseY - this.points[nearestPoint.index].y;
+                cursor('grab');
+                return;
+            }
+    
+            if (!this.isScalingRect) {
+                let nearestSeg = this.findNearestSegment(this.mouseX, this.mouseY);
+                if (nearestSeg.distance < this.snapThreshold) {
+                    this.insertPoint(nearestSeg.index + 1, nearestSeg.point.x, nearestSeg.point.y);
+                    this.draggingIndex = nearestSeg.index + 1;
+                    this.dragOffsetX = this.mouseX - nearestSeg.point.x;
+                    this.dragOffsetY = this.mouseY - nearestSeg.point.y;
+                    cursor('grab');
+                    return;
+                }
+    
+                if (!this.isClosed) {
+                    this.addPoint(this.mouseX, this.mouseY);
+                    this.draggingIndex = -1;
+                    cursor(ARROW);
+                }
+            }
+        }
     }
 
     mouseDragged() {
         if (!this.editMode) return;
         this.scalexy();
-
+        let retp = [];
+    
         if (this.isDraggingWhole) {
-            // Calcola lo spostamento
             let dx = this.mouseX - this.dragStartX;
             let dy = this.mouseY - this.dragStartY;
             
-            // Applica lo spostamento a tutti i punti
             for (let point of this.points) {
                 point.x += dx;
                 point.y += dy;
             }
             
-            // Aggiorna il punto di partenza per il prossimo frame
             this.dragStartX = this.mouseX;
             this.dragStartY = this.mouseY;
-            
+            cursor('grabbing');
+        } else if (this.draggingIndex >= 0) {
+            if (this.isScalingRect) {
+                const dragPoint = this.points[this.draggingIndex];
+                const oppositeIndex = (this.draggingIndex + 2) % 4;
+                const oppositePoint = this.points[oppositeIndex];
+
+                const newX = this.mouseX - this.dragOffsetX;
+                const newY = this.mouseY - this.dragOffsetY;
+
+                if (this.draggingIndex === 0 || this.draggingIndex === 2) {
+                    dragPoint.x = newX;
+                    dragPoint.y = newY;
+                    
+                    const nextIndex = (this.draggingIndex + 1) % 4;
+                    const prevIndex = (this.draggingIndex + 3) % 4;
+                    
+                    this.points[nextIndex].x = oppositePoint.x;
+                    this.points[nextIndex].y = dragPoint.y;
+                    this.points[prevIndex].x = dragPoint.x;
+                    this.points[prevIndex].y = oppositePoint.y;
+                } else {
+                    dragPoint.x = newX;
+                    dragPoint.y = newY;
+                    
+                    const nextIndex = (this.draggingIndex + 1) % 4;
+                    const prevIndex = (this.draggingIndex + 3) % 4;
+                    
+                    this.points[nextIndex].x = dragPoint.x;
+                    this.points[nextIndex].y = oppositePoint.y;
+                    this.points[prevIndex].x = oppositePoint.x;
+                    this.points[prevIndex].y = dragPoint.y;
+                }
+            } else {
+                this.points[this.draggingIndex].x = this.mouseX - this.dragOffsetX;
+                this.points[this.draggingIndex].y = this.mouseY - this.dragOffsetY;
+            }
             cursor('grabbing');
         }
-        else if (this.draggingIndex >= 0) {
-            // Drag normale di un singolo punto
-            this.points[this.draggingIndex].x = this.mouseX - this.dragOffsetX;
-            this.points[this.draggingIndex].y = this.mouseY - this.dragOffsetY;
-            cursor('grabbing');
-        }
-		return this.getPointsInMeters();
+        return this.getPointsInMeters(); 
     }
 
-    mouseReleased() {
+	mouseReleased() {
         if (!this.editMode) return;
         
         if (this.draggingIndex >= 0) {
@@ -714,7 +799,7 @@ class PolylineEditor {
 	}
 
 	draw() {
-		if(this.enabled){
+		if(this.enabled || this.editMode){
 			this.scalexy();
 			//console.log("this.mouseX: "+this.mouseX+" this.mouseY: "+this.mouseY);
 			//circle(mouseX, mousey, this.mergeThreshold * 2);
@@ -734,7 +819,6 @@ class PolylineEditor {
 					cursor('grab');
 				}
 			}
-		
 			// Disegna la spezzata principale
 			stroke(this.areaColor);
 			strokeWeight(2);
@@ -847,36 +931,49 @@ class PolylineEditor {
 
 	getPointsInMeters() {
 		let arr = this.points.map((p)=>{
-			let x = this.mapInverse(p.x, -this.width/2, this.width/2,-this.radius, this.radius);
-			let y = this.mapInverse(p.y, 0, -this.height, 0, -this.radius);
+			let x = this.mapInverse(p.x, -this.width/2, this.width/2,-this.radiusx, this.radiusx);
+			let y = this.mapInverse(p.y, 0, -this.height, 0, -this.radiusy);
 			return  [x, y];
 		});
-        return arr;
+		if(this.isScalingRect){
+			
+			arr = [[arr[0][0], arr[0][1]], [arr[2][0], arr[2][1]]];
+		}
+		return arr;
     }
 
-	importPointsInMeters(list){
-		let parr = list.map((p) => {	
-			let xv = Number(p[0]);
-			let yv = Number(p[1]);
-			return this.getPointInPixel({x: xv, y: yv});
-		});
-		this.isCreatingRect = true;
-		this.rectStartPoint = parr[0];
-		this.points = parr;
-		this.isClosed = true;  // impostiamo subito isClosed a true
-		this.isCreatingRect = false;  // non serve più, il rettangolo è già creato
-		this.editMode = false;
+	importPointsInMeters(list, scale=1){
+		if (list.length != 0){
+			let parr = list.map((p) => {	
+				let xv = Number(p[0])*scale;
+				let yv = Number(p[1])*scale;
+				return this.getPointInPixel({x: xv, y: yv}); 
+			});
+			//this.isCreatingRect = true;
+			this.rectStartPoint = parr[0];
+			if(!this.isScalingRect){
+				this.points = parr;
+			}else{
+				this.points = [{x: parr[0].x, y: parr[0].y}, {x: parr[1].x, y: parr[0].y}, {x: parr[1].x, y: parr[1].y},{x: parr[0].x, y: parr[1].y}];
+				console.log("rect");
+			}	
+			console.log(this.points);
+			console.log(parr);
+			this.isClosed = true;  // impostiamo subito isClosed a true
+			//this.isCreatingRect = false;  // non serve più, il rettangolo è già creato
+			this.editMode = false;
+		}
 	}
 
 	getPointInMeters(p) {
-		let xx = this.mapInverse(p.x, -this.width/2, this.width/2, -this.radius, this.radius);
-		let yy = this.mapInverse(p.y, 0, -this.height, 0, -this.radius);
+		let xx = this.mapInverse(p.x, -this.width/2, this.width/2, -this.radiusx, this.radiusx);
+		let yy = this.mapInverse(p.y, 0, -this.height, 0, -this.radiusx);
         return { x: xx, y: yy*this.ratio };
     }
 
 	getPointInPixel(p) {
-		let xx = this.map2(p.x, -this.radius, this.radius, -this.width/2, this.width/2);
-		let yy = this.map2(p.y, 0, -this.radius*this.ratio, 0, -this.height);
+		let xx = this.map2(p.x, -this.radiusx, this.radiusx, -this.width/2, this.width/2);
+		let yy = this.map2(p.y, 0, -this.radiusx*this.ratio, 0, -this.height);
         return { x: xx, y: yy };
     }
 
@@ -1115,8 +1212,9 @@ const commandMap = {
 				plns = value.polilines;
 				r.polilines = plns;// save regions on boardData 
 				for(i=0; i<plns.length; i++){
+					r.dar[i].enabled = Number(r.enabled[i]);
+					r.shape[i] = r.dar[i].isScalingRect;
 					r.dar[i].importPointsInMeters(plns[i]);
-					r.dar[i].enabled = r.enabled[i];
 				}			
 
 				console.log('regions receive ENABLED', r.enabled);
@@ -1541,8 +1639,8 @@ function setInputListeners() {
 			narea: r.selected,
 			type: typeval,
 			enabled: enabledval,
-			shape: 0,
-			points: r.polilines[selectedPoliline]
+			shape: Number(r.dar[selectedPoliline].isScalingRect),
+			polilines: r.polilines[selectedPoliline]
 		};	
 		/*
 		v = {
@@ -1553,6 +1651,7 @@ function setInputListeners() {
             ]    
         }
 		*/		
+		console.log('narea', r.selected);
 		console.log('region send', region);
 		pubAtt("region", region, boardId, "write"); //serializza e invia
 		areavertices.style.backgroundColor = "#E67E22"; // activate the wait signal for command feedback
@@ -1566,7 +1665,7 @@ function setInputListeners() {
 		const val = {	
 			narea: r.selected,
 			type: areatypeselsel.value,
-			shape:0,
+			shape: Number(r.dar[selectedPoliline].isScalingRect),
 		};
 		console.log('radar type send', val);
     	pubAtt("areatype", val, boardId, "write"); //serializza e invia
@@ -1643,42 +1742,48 @@ function updateBoardUI() {
     sensorDataElement.querySelector('.total').innerText = `${boardData.luxData.total} Lux`;
 }
 
-var radius=10;
-var toph = 1;
+let container = document.getElementById('radar');
+// Ottieni la larghezza e l'altezza del div contenitore
+let width = container.offsetWidth*0.988;
+//let height = width*1.1/2;
+let height = width*1.2/2;
+let radius=10;
+let radiusx=radius;
+let radiusy=radiusx*height/width*2;
 
 function setup() {
     // Ottieni il div contenitore
-    let container = document.getElementById('radar');
-    // Ottieni la larghezza e l'altezza del div contenitore
-    var width = container.offsetWidth*0.988;
-    //let height = width*1.1/2;
-	var height = width*1.2/2;
-	toph = height/width*2*radius;
-	
 	const colors = [
-		color(255, 182, 193, 100), // LightPink #FFB6C1
-		color(173, 216, 230, 100), // LightBlue #ADD8E6
-		color(144, 238, 144, 100), // LightGreen #90EE90
-		color(255, 218, 185, 100), // PeachPuff #FFDAB9
-		color(221, 160, 221, 100), // Plum      #DDA0DD
-		color(176, 196, 222, 100)  // LightSteelBlue #B0C4DE
+		color(255, 182, 193, 100), // LightPink     #FFB6C1
+		color(173, 216, 230, 100), // LightBlue     #ADD8E6
+		color(144, 238, 144, 100), // LightGreen    #90EE90
+		color(255, 218, 185, 100), // PeachPuff     #FFDAB9
+		color(221, 160, 221, 100), // Plum          #DDA0DD
+		color(176, 196, 222, 100), // LightSteelBlue #B0C4DE
+		color(255, 160, 122, 100), // LightSalmon   #FFA07A
+		color(152, 251, 152, 100), // PaleGreen     #98FB98
+		color(135, 206, 235, 100)  // SkyBlue       #87CEEB
 	];
 
 	let r = boardData.radarData.regions;
 	console.log("INIT DAR: ");
 	r.dar = [
-		new PolylineEditor([], width, height, colors[0], "Area 1", 10),
-		new PolylineEditor([], width, height, colors[1], "Area 2", 10),
-		new PolylineEditor([], width, height, colors[2], "Area 3", 10),
-		new PolylineEditor([], width, height, colors[3], "Area 4", 10),
-		new PolylineEditor([], width, height, colors[3], "Area 5", 10),
-		new PolylineEditor([], width, height, colors[4], "Area 6", 10)
+		new PolylineEditor([], width, height, colors[0], "Area 1", radius),
+		new PolylineEditor([], width, height, colors[1], "Area 2", radius),
+		new PolylineEditor([], width, height, colors[2], "Area 3", radius),
+		new PolylineEditor([], width, height, colors[3], "Area 4", radius),
+		new PolylineEditor([], width, height, colors[4], "Area 5", radius),
+		new PolylineEditor([], width, height, colors[5], "Area 6", radius),
+		new PolylineEditor([], width, height, colors[6], "Area in 1", radius, true),
+		new PolylineEditor([], width, height, colors[7], "Area in 2", radius, true),
+		new PolylineEditor([], width, height, colors[8], "Area in 3", radius, true)
 	];
 
-	plns = r.polilines;
+	plns = r.dar;
 	for(i=0; i<plns.length; i++){
-		r.dar[i].importPointsInMeters(plns[i]);
-		r.dar[i].enabled = r.enabled[i];
+		//r.dar[i].importPointsInMeters(plns[i]);
+		r.dar[i].enabled = Number(r.enabled[i]);
+		r.shape[i] = Number(r.dar[i].isScalingRect);
 	}	
 	
 	console.log("width: "+width);
@@ -1693,8 +1798,9 @@ function setup() {
 function draw() {
     background(0);
     translate(width / 2, height); // Sposta l'origine in basso al centro
+	//scale(-1, 1); // Inverte la direzione dell'asse x
 	let r = boardData.radarData.regions;
-	for(i=0; i<6; i++){
+	for(i=0; i<9; i++){
 		r.dar[i].draw();
 		r.dar[i].setReport(r.ntarget[i]);
 	}
@@ -1718,11 +1824,11 @@ function draw() {
 		
 			if(boardData.radarData.rot){
 				// Scala i valori per adattarli allo schermo
-				scaledX = map(x, radius, -radius, -width/2 , width/2 );
-				scaledY = map(y, toph, 0, 0, -height);
+				scaledX = map(x, radiusx, -radiusx, -width/2 , width/2 );
+				scaledY = map(y, radiusy, 0, 0, -height);
 			}else{
-				scaledX = map(x, -radius, radius, -width/2, width/2 );
-				scaledY = map(y, 0, toph, 0, -height);
+				scaledX = map(x, -radiusx, radiusx, -width/2, width/2 );
+				scaledY = map(y, 0, radiusy, 0, -height);
 			}
 			// Disegna il punto
 			fill(0, 255, 0);
@@ -1847,9 +1953,11 @@ function updateInputsFromBoardDataRegion() {
 
 function mousePressed() {
 	let r = boardData.radarData.regions;
+	let plns = r.polilines;
 	let selectedRectangle = r.selected -1;
-	console.log("selectedRectangle mousePressed: "+selectedRectangle);
+	//console.log("selectedRectangle mousePressed: "+selectedRectangle);
 	r.dar[selectedRectangle].mousePressed();
+	plns[selectedRectangle] = r.dar[selectedRectangle].getPointsInMeters();
 }
 
 function mouseDragged() {
@@ -1857,20 +1965,23 @@ function mouseDragged() {
 	let selectedRectangle = r.selected -1;
 	let plns = r.polilines;
 	plns[selectedRectangle] = r.dar[selectedRectangle].mouseDragged();
-	console.log("selRect "+plns[selectedRectangle]);
+	//console.log("selRect "+plns[selectedRectangle]);
 }
 
 function mouseReleased() {
 	let r = boardData.radarData.regions;
+	let plns = r.polilines;
 	let selectedRectangle = r.selected -1;
 	//console.log("selectedRectangle released: "+selectedRectangle);
 	r.dar[selectedRectangle].mouseReleased();
+	plns[selectedRectangle] = r.dar[selectedRectangle].getPointsInMeters();
 }
 
 // Opzionale: rimuove l'ultimo punto quando si preme il tasto 'z'
 function keyPressed() {
 	console.log("key: "+key);
 	let r = boardData.radarData.regions;
+	let plns = r.polilines;
 	let selectedRectangle = r.selected -1;
 	let editor = r.dar[selectedRectangle];
     if (key === 'z' || key === 'Z') {
@@ -1887,6 +1998,7 @@ function keyPressed() {
 	}else if(key ==='Delete' || key ==='d' || key ==='D'){
 		// Se ci sono punti da cancellare
 		editor.clearFigure();
+		plns[selectedRectangle] = r.dar[selectedRectangle].getPointsInMeters();
 	}else if(key ==='r' || key ==='R'){
 		editor.approximateToRectangle();
 	}	
