@@ -52,13 +52,26 @@ class Radar:
             'polilines': []            
         }
         dim = len(self._regions)
-        for i in range(dim):  # Ciclo per 3 regioni
+        for i in range(9):  # Ciclo per 3 regioni
             result['narea'].append(self._regions[i]["narea"])
             result['type'].append(self._regions[i]["type"])
             result['enabled'].append(self._regions[i]["enabled"])
             rect = self._regions[i]["points"]
             #rect = [[p[0]/10, p[1]/10] for p in rect]
-            result['polilines'].append(rect)    
+            result['polilines'].append(rect)
+        """
+        for i in range(7, 9):  # Ciclo per 3 regioni
+            result['narea'].append(self._regions[i]["narea"])
+            result['type'].append(self._regions[i]["type"])
+            result['enabled'].append(self._regions[i]["enabled"])
+            result['shape'].append(self._regions[i]["shape"])
+            val = self.query_zone_filtering()
+            print("Val filtering:",val)
+            if val:
+                rect = self._regions[i]["points"] = [[val[i], val[i+1]], [val[i+2], val[i+3]]]
+            #rect = [[p[0]/10, p[1]/10] for p in rect]
+            result['polilines'].append(rect)
+            """
         return result
        
     def get_regionFromRAM(self, index):# 0x06
@@ -118,7 +131,7 @@ class Radar:
                     print(rgs)
                    
                     if rgs[6]['points']:
-                        region1_x1 = int(rgs[6]['points'][0][0]*1000)
+                        region1_x1 = int(rgs[6]['points'][0][0]*1000) 
                         region1_y1 = int(rgs[6]['points'][0][1]*1000)
                         region1_x2 = int(rgs[6]['points'][1][0]*1000)
                         region1_y2 = int(rgs[6]['points'][1][1]*1000)
@@ -356,35 +369,16 @@ class Radar:
         return value
     
     def to_signed_bytes(self, value):
-        """
-        Converte un numero intero in una sequenza di 2 bytes con segno.
-        Il bit più significativo (MSB) del secondo byte è il bit del segno:
-        1 per positivo, 0 per negativo (logica invertita rispetto allo standard)
-        
-        Args:
-            value (int): Il numero intero da convertire
-            
-        Returns:
-            bytes: Array di 2 bytes contenente la rappresentazione con segno
-        """
+        res = bytearray(2)
         if value >= 0:
-            # Per numeri positivi
-            if value >= 2**15:
-                raise ValueError("Valore troppo grande per 15 bit")
-            # Il MSB sarà 1 (positivo nella logica invertita)
-            byte_high = ((value >> 8) & 0x7F) | 0x80  # Imposta il MSB a 1
-            byte_low = value & 0xFF
+            res = (value).to_bytes(2, 'little')
         else:
-            # Per numeri negativi
-            if value < -(2**15):
-                raise ValueError("Valore troppo piccolo per 15 bit")
-            # Converte il numero negativo e imposta il MSB a 0
-            abs_value = abs(value)
-            byte_high = (abs_value >> 8) & 0x7F  # Mantiene il MSB a 0
-            byte_low = abs_value & 0xFF
-            
-        return bytes([byte_low, byte_high])
-    
+           value = -value
+           value = 65536 - value
+           res = (value).to_bytes(2, 'little')
+               
+        return bytes(res)
+        
     def flushUart(self):
         num = self.uart.any()
         self.uart.read(num)
@@ -725,6 +719,7 @@ class Radar:
                 return None
      """       
     def query_zone_filtering(self)->tuple[13]:
+        print("query_zone_filtering")
         '''
         Query the current zone filtering mode of the radar (see docs 2.2.12)
         Parameters:
@@ -816,13 +811,14 @@ class Radar:
         command_value[22:24] = self.to_signed_bytes(region3_x2)
         command_value[24:26] = self.to_signed_bytes(region3_y2)
         
+        """
         if region1_x1==0 and region1_y1==0 and region1_x2==0 and region1_y2==0:
             command_value[2:4] = command_value[4:6] = command_value[6:8] = command_value[8:10] = b'\x00\x00'
         if region2_x1==0 and region2_y1==0 and region2_x2==0 and region2_y2==0:
             command_value[10:12] = command_value[12:14] = command_value[14:16] = command_value[16:18] = b'\x00\x00'
         if region3_x1==0 and region3_y1==0 and region3_x2==0 and region3_y2==0:
             command_value[18:20] = command_value[20:22] = command_value[22:24] = command_value[24:26] = b'\x00\x00'
-            
+        """    
         print("Zf4")
         response = self._send_command(intra_frame_length, command_word, command_value)
         print("Zf5")
@@ -1002,3 +998,4 @@ class Radar:
         
         
     
+
