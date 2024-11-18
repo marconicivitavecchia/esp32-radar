@@ -799,7 +799,7 @@ class PolylineEditor {
 	}
 
 	draw() {
-		if(this.enabled || this.editMode){
+		if(this.enabled || this.editMode && this.points.length>0){
 			this.scalexy();
 			//console.log("this.mouseX: "+this.mouseX+" this.mouseY: "+this.mouseY);
 			//circle(mouseX, mousey, this.mergeThreshold * 2);
@@ -930,14 +930,18 @@ class PolylineEditor {
     }
 
 	getPointsInMeters() {
-		let arr = this.points.map((p)=>{
-			let x = this.mapInverse(p.x, -this.width/2, this.width/2,-this.radiusx, this.radiusx);
-			let y = this.mapInverse(p.y, 0, -this.height, 0, -this.radiusy);
-			return  [x, y];
-		});
-		if(this.isScalingRect){
-			
-			arr = [[arr[0][0], arr[0][1]], [arr[2][0], arr[2][1]]];
+		let arr = [];
+		if(this.points.length > 0){
+			arr = this.points.map((p)=>{
+				let x = this.mapInverse(p.x, -this.width/2, this.width/2,-this.radiusx, this.radiusx);
+				let y = this.mapInverse(p.y, 0, -this.height, 0, -this.radiusy);
+				return  [x, y];
+			});
+			if(this.isScalingRect){
+				
+				//arr = [[arr[0][0], arr[0][1]], [arr[2][0], arr[2][1]]];
+				arr = [[arr[1][0], arr[1][1]], [arr[3][0], arr[3][1]]];
+			}
 		}
 		return arr;
     }
@@ -945,7 +949,7 @@ class PolylineEditor {
 	importPointsInMeters(list, scale=1){
 		console.log("imports "+this.label);
 		console.log(this.points);
-		this.points = [];
+		this.points = []; // va quà, vanno scritte anche le liste vuote
 		if (list.length != 0){
 			let parr = list.map((p) => {	
 				let xv = Number(p[0])*scale;
@@ -1214,7 +1218,9 @@ const commandMap = {
 
 				plns = value.polilines;
 				r.polilines = plns;// save regions on boardData 
-				for(i=0; i<plns.length; i++){
+				for(i=0; i<9; i++){
+					console.log('i ',i);
+					console.log('label ', r.dar[i].label);
 					r.dar[i].enabled = Number(r.enabled[i]);
 					r.shape[i] = r.dar[i].isScalingRect;
 					r.dar[i].importPointsInMeters(plns[i]);
@@ -1666,6 +1672,7 @@ function setInputListeners() {
 	let areatypesend = areatypesel.querySelector('.send');
 	areatypesend.onclick = () => {
 		let r = boardData.radarData.regions;
+		let selectedPoliline = r.selected-1;
 		const val = {	
 			narea: r.selected,
 			type: areatypeselsel.value,
