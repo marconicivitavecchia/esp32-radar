@@ -358,6 +358,8 @@ def leggi_radarState():
     
 def leggi_regioni():
     print("Leggi regioni")
+    #val1 = radar.query_zone_filtering()
+    #print(val1)
     val = radar.get_regionsFromRAM()
     pubStateAtt("regions", val)
     

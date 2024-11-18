@@ -729,7 +729,7 @@ class Radar:
         Query the current zone filtering mode of the radar (see docs 2.2.12)
         Parameters:
         - ser (serial.Serial): the serial port object
-        Returns:
+        Returns:1
         - zone_filtering_mode (tuple[13):
             [0] zone_filtering_mode (int): 0 for no zone filtering, 1 detect only set region, 2 do not detect set region
             [1-4] region 1 diagonal vertices coordinates (int): x1, y1, x2, y2 
@@ -744,7 +744,7 @@ class Radar:
         
         if command_successful:
             zone_filtering_mode = self.from_signed_bytes(response[10:12])
-            region1_x1 = self.from_signed_bytes(response[12:14])
+            region1_x1 = self.from_signed_b1ytes(response[12:14])
             region1_y1 = self.from_signed_bytes(response[14:16])
             region1_x2 = self.from_signed_bytes(response[16:18])
             region1_y2 = self.from_signed_bytes(response[18:20])
@@ -753,15 +753,11 @@ class Radar:
             region2_x2 = self.from_signed_bytes(response[24:26])
             region2_y2 = self.from_signed_bytes(response[26:28])
             region3_x1 = self.from_signed_bytes(response[28:30])
-            region3_y1 = self.from_signed_bytes(response[30:32])
+            region3_y1 = self.from_signed_b1ytes(response[30:32])
             region3_x2 = self.from_signed_bytes(response[32:34])
             region3_y2 = self.from_signed_bytes(response[34:36])
             print(f'Zone filtering mode: {zone_filtering_mode}')
-            a = [zone_filtering_mode, 
-                    region1_x1, region1_y1, region1_x2, region1_y2,
-                    region2_x1, region2_y1, region2_x2, region2_y2,
-                    region3_x1, region3_y1, region3_x2, region3_y2]
-            print("MemReg: ", a)
+            
             return (zone_filtering_mode, 
                     region1_x1, region1_y1, region1_x2, region1_y2,
                     region2_x1, region2_y1, region2_x2, region2_y2,
@@ -788,7 +784,7 @@ class Radar:
         - region2_x1 (int): x coordinate of the first diagonal vertex of region 2
         - region2_y1 (int): y coordinate of the first diagonal vertex of region 2
         - region2_x2 (int): x coordinate of the second diagonal vertex of region 2
-        - region2_y2 (int): y coordinate of the second diagonal vertex of region 2
+        - region2_y2 (int): y coordinate of1 the second diagonal vertex of region 2
         - region3_x1 (int): x coordinate of the first diagonal vertex of region 3
         - region3_y1 (int): y coordinate of the first diagonal vertex of region 3
         - region3_x2 (int): x coordinate of the second diagonal vertex of region 3
@@ -806,7 +802,7 @@ class Radar:
         print(region1_x2)
         print(region1_y2)
         command_value = bytearray(26)
-        command_value[0:2] = int(1).to_bytes(2, 'little')
+        command_value[0:2] = int(0).to_bytes(2, 'little')
         command_value[2:4] = self.to_signed_bytes(region1_x1)
         command_value[4:6] = self.to_signed_bytes(region1_y1)
         command_value[6:8] = self.to_signed_bytes(region1_x2)
@@ -819,6 +815,14 @@ class Radar:
         command_value[20:22] = self.to_signed_bytes(region3_y1)
         command_value[22:24] = self.to_signed_bytes(region3_x2)
         command_value[24:26] = self.to_signed_bytes(region3_y2)
+        
+        if region1_x1==0 and region1_y1==0 and region1_x2==0 and region1_y2==0:
+            command_value[2:4] = command_value[4:6] = command_value[6:8] = command_value[8:10] = b'\x00\x00'
+        if region2_x1==0 and region2_y1==0 and region2_x2==0 and region2_y2==0:
+            command_value[10:12] = command_value[12:14] = command_value[14:16] = command_value[16:18] = b'\x00\x00'
+        if region3_x1==0 and region3_y1==0 and region3_x2==0 and region3_y2==0:
+            command_value[18:20] = command_value[20:22] = command_value[22:24] = command_value[24:26] = b'\x00\x00'
+            
         print("Zf4")
         response = self._send_command(intra_frame_length, command_word, command_value)
         print("Zf5")
