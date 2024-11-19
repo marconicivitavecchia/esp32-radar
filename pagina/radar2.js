@@ -2062,9 +2062,7 @@ function createCanvasInstances(boardID) {
             sketch.resizeCanvas(width, height);
 			let r = boardData[boardID].radarData.regions;
 
-			for(i=0; i<6; i++){
-				r.dar[i].setResize(width, height); 
-			}
+			
         };
 
 		sketch.mousePressed = function() {
@@ -2166,31 +2164,4 @@ function updateInputsFromBoardDataRegion(boardID) {
 	let selectedRectangle = r.selected -1;
 	dataentry[0].value = roundTo(r.enabled[selectedRectangle], 1);
 	dataentry[1].value = roundTo(r.type[selectedRectangle], 1);
-}
-
-// Opzionale: rimuove l'ultimo punto quando si preme il tasto 'z'
-function keyPressed() {
-	console.log("key: "+key);
-	let r = boardData.radarData.regions;
-	let plns = r.polilines;
-	let selectedRectangle = r.selected -1;
-	let editor = r.dar[selectedRectangle];
-    if (key === 'z' || key === 'Z') {
-		editor.removeLastPoint();
-    }else if(key ==='Escape'){
-		console.log("Escape ");
-		editor.stopEditing();
-	}else if(key ==='Enter'){
-		console.log("Enter ");
-		editor.startEditing();
-	}else if(key ==='Backspace'){
-		console.log("Backspace ");
-		editor.toggleEditing();
-	}else if(key ==='Delete' || key ==='d' || key ==='D'){
-		// Se ci sono punti da cancellare
-		editor.clearFigure();
-		plns[selectedRectangle] = r.dar[selectedRectangle].getPointsInMeters();
-	}else if(key ==='r' || key ==='R'){
-		editor.approximateToRectangle();
-	}	
 }

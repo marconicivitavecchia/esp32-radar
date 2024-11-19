@@ -1803,6 +1803,7 @@ function setup() {
     let canvas = createCanvas(width, height);
     canvas.parent('radar'); // Collega il canvas al div con id 'radar'
     window.addEventListener('resize', resizeCanvasToDiv);
+	window.addEventListener('scroll', resizeCanvasToDiv);
 }
 
 function draw() {
@@ -1908,7 +1909,7 @@ function resizeCanvasToDiv() {
     resizeCanvas(width, height);
 
 	let r = boardData.radarData.regions;
-	for(i=0; i<6; i++){
+	for(i=0; i<9; i++){
 		r.dar[i].setResize(width, height); 
 	}
 }
