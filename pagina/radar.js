@@ -523,7 +523,7 @@ class PolylineEditor {
     
         if (mouseButton === LEFT) {
             const currentTime = millis();
-            if (nearestPoint.distance < this.snapThreshold) {
+            if (nearestPoint.distance < this.snapThreshold && !this.isScalingRect) {
                 if (currentTime - this.lastClickTime < this.doubleClickDelay) {
                     if (this.points.length > 3) {
                         this.points.splice(nearestPoint.index, 1);
@@ -1792,7 +1792,6 @@ function setup() {
 
 	plns = r.dar;
 	for(i=0; i<plns.length; i++){
-		//r.dar[i].importPointsInMeters(plns[i]);
 		r.dar[i].enabled = Number(r.enabled[i]);
 		r.shape[i] = Number(r.dar[i].isScalingRect);
 	}	
