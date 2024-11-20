@@ -110,24 +110,34 @@ def wifi_connect(ssid, key):
 def wifi_connect2(ssid_1, key_1, ssid_2, key_2, max_retries=10):
     sta_if = network.WLAN(network.STA_IF)
     sta_if.active(True)
+    retries = 0
     
     def try_connect(ssid, key):
-        sta_if.connect(ssid, key)
-        retries = 0
-        while not sta_if.isconnected() and retries < max_retries:
+        timeout = 10
+        limit = 0;
+        try:
             print(f"Attempting to connect to {ssid}... ({retries + 1}/{max_retries})")
-            time.sleep(0.5)
-            retries += 1
+            sta_if.connect(ssid, key)
+            while not sta_if.isconnected() and limit < timeout:
+                print(".", end="")
+                time.sleep(0.1)
+                limit += 0.1
+                
+        except OSError as e:
+                print(f'Connection attempt {retries + 1} failed: {e}')
         return sta_if.isconnected()
     
-    # Primo tentativo con il primo SSID
-    if try_connect(ssid_1, key_1):
-        print(f"Connected to {ssid_1}")
-    # Se il primo fallisce, tenta il secondo SSID
-    elif try_connect(ssid_2, key_2):
-        print(f"Connected to {ssid_2}")
-    else:
-        # Fallimento di entrambi i tentativi
+    while not sta_if.isconnected() and retries < max_retries:
+        
+        # Primo tentativo con il primo SSID
+        if try_connect(ssid_1, key_1):
+            print(f"Connected to {ssid_1}")
+        # Se il primo fallisce, tenta il secondo SSID
+        elif try_connect(ssid_2, key_2):
+            print(f"Connected to {ssid_2}")
+        retries += 1
+    
+    if retries > max_retries:
         raise OSError("Unable to connect to any SSID.")
     
     # Ritorna l'indirizzo IP, il MAC e l'oggetto WLAN se connesso
