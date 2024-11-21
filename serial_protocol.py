@@ -963,8 +963,9 @@ class Radar:
             'lista_v': [target1_speed, target2_speed, target3_speed],
             'lista_dr': [target1_distance_res, target2_distance_res, target3_distance_res],
             'ntarget': [],
-        }
-         
+        }    
+        suppressed = [0, 0, 0]
+        
         nt = []
         for i in range(len(self._regions)):
             punti = self._regions[i]['points']
@@ -973,15 +974,22 @@ class Radar:
                 px = result['lista_x'][j]
                 py = result['lista_y'][j]
                 
-                if self._regions[i]['shape'] == 0 and (px!=0 or py!=0):# spezzata
+                if self._regions[i]['shape'] == 0 and (px!=0 or py!=0):# se le regioni non sono rettangolari e se j non è sullo zero
                     inside = self.punto_dentro_poligono(px, py, punti)
-                    if (inside and self.state != 1):
-                        nt[i] = 1
-                    if (self._regions[i]['type']==1 or self._regions[i]['type']==2 and not inside) and self._regions[i]['enabled']==1:
-                        result['lista_x'][i] = 0
-                        result['lista_y'][i] = 0
-                        nt[i] = 0
-                                                
+                    if (inside and self.state != 1):# j se sta dentro una regione di monitor o di crop
+                        nt[i] = 1                   # accendi la regione
+                    if (inside and self._regions[i]['type']==1 or self._regions[i]['type']==2 and (not inside)) and self._regions[i]['enabled']==1:
+                        # se j sta dentro una regione di filtro abile o sta fuori di una regione croppata abile, allora 
+                        result['lista_x'][j] = 0 # cancella j, 
+                        result['lista_y'][j] = 0
+                        nt[i] = 0                # spegni la regione,
+                        suppressed[j] = 1        # sopprimi j
+                    for k in range (0, i):# per tutte le regioni già elaborate
+                        punti = self._regions[k]['points']# recupera i loro vertici
+                        inside = self.punto_dentro_poligono(px, py, punti)# vedi se contiene j
+                        if inside  and suppressed[j]:# se contiene il soppresso j, allora spegni la regione di qualunque tipo essa sia
+                            nt[k] = 0
+                                                     
         self.ntargets = nt
         result['ntarget'] = self.ntargets;
         if self.state == 2:
@@ -991,7 +999,6 @@ class Radar:
         """
         except KeyboardInterrupt:
             # Close the serial port on keyboard interrupt
-            self.uart.close()
             print("Serial port closed.")
         """
         

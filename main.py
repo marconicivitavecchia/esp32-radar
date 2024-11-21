@@ -29,8 +29,8 @@ from adafruit_ltr329_ltr303 import LTR329
 from movingStatistics2 import *
 from serial_protocol import *
 
-#S_ON = Pin(3, Pin.OUT) # PIN RADAR POWER MENAGEMENT ESP32
-S_ON = Pin(42, Pin.OUT) # PIN RADAR POWER MENAGEMENT ALEMAX
+S_ON = Pin(3, Pin.OUT) # PIN RADAR POWER MENAGEMENT ESP32
+#S_ON = Pin(42, Pin.OUT) # PIN RADAR POWER MENAGEMENT ALEMAX
 S_ON.value(1)
 #Pin(18, Pin.IN, Pin.PULL_UP)
 #Pin(17, Pin.IN, Pin.PULL_UP)
@@ -94,8 +94,8 @@ lista_v = []
 lista_dr = []
 lista_n = []
 #uart.init(radarvel, bits=8, parity=None, stop=1)
-#uart = UART(1, baudrate=radarvel, bits=8, parity=None, stop=1, rx=1, tx=2) #ESP32
-uart = UART(1, baudrate=radarvel, bits=8, parity=None, stop=1, rx=18, tx=17) #ALEMAX
+uart = UART(1, baudrate=radarvel, bits=8, parity=None, stop=1, rx=1, tx=2) #ESP32
+#uart = UART(1, baudrate=radarvel, bits=8, parity=None, stop=1, rx=18, tx=17) #ALEMAX
 radar = Radar(uart) 
 
 print('Baud rate', radarvel)
