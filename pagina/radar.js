@@ -85,6 +85,7 @@ class PolylineEditor {
         //colore ed etichetta
         this.areaColor = color(0, 0, 255, 30);  // colore default blu semi-trasparente
         this.label = "";  // etichetta/numero dell'area
+		this.label1 = "";  // etichetta/numero dell'area
         this.setAreaColor(defColor);
         this.setLabel(label);
         //flag creazione rettangoli
@@ -99,6 +100,18 @@ class PolylineEditor {
         this.enabled = false;
         // Modalità rettangolo scalabile
         this.isScalingRect = rect;
+    	this.type = "";
+    }
+
+	setType(type) {
+		if(type == 0){
+			this.type = "(monitor)";
+		}else if(type == 1){
+			this.type = "(filter)";
+		}else if(type == 2){
+        	this.type = "(crop)";
+		}
+		this.label = `${this.label1} ${this.type}`;
     }
 	
 	setScalingRectMode(enabled) {
@@ -263,7 +276,7 @@ class PolylineEditor {
     }
 
     setLabel(label) {
-        this.label = label;
+        this.label1 = label;
     }
 
     // Modifica savePoints per includere i nuovi attributi
@@ -1224,6 +1237,7 @@ const commandMap = {
 					r.dar[i].enabled = Number(r.enabled[i]);
 					r.shape[i] = r.dar[i].isScalingRect;
 					r.dar[i].importPointsInMeters(plns[i]);
+					r.dar[i].setType(Number(r.type[i]))
 				}			
 
 				console.log('regions receive ENABLED', r.enabled);
