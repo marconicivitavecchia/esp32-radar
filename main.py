@@ -1,7 +1,8 @@
 from machine import UART
 from machine import reset as machine_reset
-from bme680 import *
+#from bme680 import *
 from utils import *
+import sys
 
 
 # Manage debug
@@ -24,52 +25,160 @@ from machine import Pin, SoftI2C
 import utime
 from collections import OrderedDict
 import json
-from serial_protocol import *
 from adafruit_ltr329_ltr303 import LTR329
 from movingStatistics2 import *
+from serial_protocol import *
+from JumpDetection import *
 
-S_ON = Pin(42, Pin.OUT) # PIN RADAR POWER MENAGEMENT
+S_ON = Pin(3, Pin.OUT) # PIN RADAR POWER MENAGEMENT ESP32
+#S_ON = Pin(42, Pin.OUT) # PIN RADAR POWER MENAGEMENT ALEMAX
 S_ON.value(1)
-Pin(18, Pin.IN, Pin.PULL_UP)
+#Pin(18, Pin.IN, Pin.PULL_UP)
 #Pin(17, Pin.IN, Pin.PULL_UP)
 # Serial configuration
 print("Configuring serial...")
 # Carica la configurazione all'avvio
-config = load_config('config.json')
+default_config = {
+    'poll_time': 2000,
+    'serial_speed': 256000,
+    'radarmode': 1,
+    'regions': [
+        {"enabled": 0, "narea": 1, "type": 0, "shape": 0, "points":[]},
+        {"enabled": 0, "narea": 2, "type": 0, "shape": 0, "points":[]},
+        {"enabled": 0, "narea": 3, "type": 0, "shape": 0, "points":[]},
+        {"enabled": 0, "narea": 4, "type": 0, "shape": 0, "points":[]},
+        {"enabled": 0, "narea": 5, "type": 0, "shape": 0, "points":[]},
+        {"enabled": 0, "narea": 6, "type": 0, "shape": 0, "points":[]},
+        {"enabled": 0, "narea": 7, "type": 0, "shape": 1, "points":[]},
+        {"enabled": 0, "narea": 8, "type": 0, "shape": 1, "points":[]},
+        {"enabled": 0, "narea": 9, "type": 0, "shape": 1, "points":[]}
+    ]
+}
+
+config = load_config('config.json')# in utils
 if config:
-    radarvel = int(config.get('serial_speed', 256000))
+    pollTime = config.get('poll_time')
+    if not pollTime:
+        config.update({"poll_time": 2000})
+        pollTime = config.get('poll_time')
+        save_config('config.json',config)
+    pollTime = int(pollTime)
+    
+    radarvel = config.get('serial_speed')
+    if not radarvel:
+        config.update({"serial_speed": 9600})
+        radarvel = config.get('serial_speed')
+        save_config('config.json',config)
+    radarvel = int(radarvel) 
+        
     print("radarvel ", radarvel)
-    #another_setting = config.get('another_setting', 'default_value')
+    print("pollTime ", pollTime)
 else:
     # Configurazione di default
-    radarvel = 256000
-    #another_setting = 'default_value'
-    config = {
-        'serial_speed': 256000,
-        #'another_setting': 'value'
-    }
-    save_config('config.json', config)
+    save_config('config.json', default_config)
+    config = default_config
+    print("DEFAULT radar_config: ", default_config)
+    
+radaregions = config.get('regions', default_config)
+if len(radaregions) < 9:
+    config['regions'] = default_config['regions']
+    save_config('config.json', default_config)
+    radaregions = config.get('regions', default_config)
 #test_speeds = [9600, 19200, 38400, 57600, 115200, 230400, 256000, 460800]
 #for speed in test_speeds:
-#radarvel = 230400 # CAMBIA QUESTA VELOCITA'. Quando hai trovato la imposti nella pagina e poi commenti la riga
+#radarvel = 115200 # CAMBIA QUESTA VELOCITA'. Quando hai trovato la imposti nella pagina e poi commenti la riga
 S_ON.value(1)
 time.sleep(0.5)
-uart = UART(1, radarvel, rx=18, tx=17)
-uart.init(radarvel, bits=8, parity=None, stop=1)
+lista_x = []
+lista_y = []
+lista_v = []
+lista_dr = []
+lista_n = []
+#uart.init(radarvel, bits=8, parity=None, stop=1)
+uart = UART(1, baudrate=radarvel, bits=8, parity=None, stop=1, rx=1, tx=2) #ESP32
+#uart = UART(1, baudrate=radarvel, bits=8, parity=None, stop=1, rx=18, tx=17) #ALEMAX
+radar = Radar(uart)
+jumper = JumpDetection()
+result = []
+print('Baud rate', radarvel)
+"""
+def my_callback(code, val, len):
+    global lista_x
+    global lista_y
+    global filter_x
+    global filter_y
+    global lista_n
+    global filter_v
+    global lista_dr
+    
+    newlen = 0
+    #print('Len: ', len)
+    if code == 0x06:
+        print('Callback get_regions!')
+        pubStateAtt("regions", val)
+    elif code == 0x07:
+        #print('Callback get_coordinates!')
+        mode = radar.get_stateFromRAM()
+        if mode != 2:
+            if filter_x.getNumSensors() != len:                
+                filter_x = MovingStatistics(window_size=10, num_sensors=len, alpha=0.125, quantile=0.5, quantile_low=0.25, quantile_high=0.75)
+                filter_y = MovingStatistics(window_size=10, num_sensors=len, alpha=0.125, quantile=0.5, quantile_low=0.25, quantile_high=0.75)
+            lista_x = filter_x.update(val.get('lista_x', []), ['emafilter']).get('emafilter')
+            lista_y = filter_y.update(val.get('lista_y', []), ['emafilter']).get('emafilter')
+            lista_v = filter_x.update(val.get('lista_v', []), ['emafilter']).get('emafilter')
+            lista_dr = filter_y.update(val.get('lista_dr', []), ['emafilter']).get('emafilter')
+    elif code == 0x08:
+        #print('Callback get_num_targets! ', val )
+        mode = radar.get_stateFromRAM()
+        if mode != 1:
+            lista_n = val             
+    elif code == 0x03:
+        print('Callback get_reporting type!')
+        pubStateAtt("radarmode", val)
+    elif code == 0x02:
+        mode = radar.get_stateFromRAM()
+        print(f'Radar set mode feedback: {mode}')
+        if mode == 1:
+            lista_n = []
+        elif mode == 2:
+            lista_x = []
+            lista_y = []
+            lista_v = []
+            lista_dr = []
+            filter_x = MovingStatistics(window_size=10, num_sensors=len, alpha=0.125, quantile=0.5, quantile_low=0.25, quantile_high=0.75)
+            filter_y = MovingStatistics(window_size=10, num_sensors=len, alpha=0.125, quantile=0.5, quantile_low=0.25, quantile_high=0.75)
+            filter_v = MovingStatistics(window_size=10, num_sensors=len, alpha=0.125, quantile=0.5, quantile_low=0.25, quantile_high=0.75)  
+            filter_dr = MovingStatistics(window_size=10, num_sensors=len, alpha=0.125, quantile=0.5, quantile_low=0.25, quantile_high=0.75)  
+        pubStateAtt("radarmode", mode)
+    elif code == 0x09:
+        print('Callback get_FW!')
+        pubStateAtt("fw", val)
+    elif code == 0x0A:
+        print('Callback set radar_factory!')
+        if val:
+            pubStateAtt("radarfactory", val)
+    elif code == 0x01:
+        print('Callback set baudrate!')
+        scrivi_servel(val)
+        pubStateAtt("servel", val)
+"""
+
 time.sleep(0.5)
 print('Baud rate', radarvel)
-radar = Radar(uart)    
+     
 # Sensor configuration
 print("Configuring sensor...")
 time.sleep(0.1)
 i2c = SoftI2C(scl=Pin(14),sda=Pin(13))
 #i2c = I2C(-1, sda=Pin(13), scl=Pin(14))
 print('Scan i2c bus...')
-devices = i2c.scan()
-bme = BME680_I2C(i2c=i2c, address=0x76)
-# Create Radar instance
-#radar = Radar(uart)
-
+#devices = i2c.scan()
+##bme = #bme680_I2C(i2c=i2c, address=0x76)
+time.sleep(1)
+#radar.read_all_info(radaregions)
+radar.load_regions(radaregions)
+print("config: ",config)
+radar.set_reporting(int(config['radarmode']))
 # Partial JSON of the single states that are retrieved in PULL mode from the web interface
 # upon receipt of a status request command
 def pubStateAtt(att, val):
@@ -85,32 +194,33 @@ def pubStateAtt(att, val):
      )
      print(f"Reporting to MQTT topic {MQTT_STATETOPIC}: {message}")
      client.publish(MQTT_STATETOPIC, message)
-     
-def pubAllState():
+    
+def getAllState():
+     global radar
+     reportype = radar.get_reporting()
+     fwval = readFW()
+     regions = radar.get_regionsFromRAM()
      timestamp = getTimestamp()
      polltimeval = pollTime
-     radarmodeval = readRadarMode()
      fwval = readFW()
      rstate = "on" if S_ON.value() else "off"
      
-     # Complete JSON of all states of the system that are retrieved in PULL mode from the web interface
-     # upon receipt of a status request command
      message = ujson.dumps(
         {
             "state": {
                 "fw": fwval,
                 "servel": radarvel,
                 "polltime": polltimeval,
-                "radarmode": radarmodeval,
                 "radarstate": rstate,
-                "radareboot": 1,
+                "radarmode": reportype,
+                "radarfactory": 1,
+                "regions": regions,
             },
             "boardID": esp32_unique_id,
             "timestamp": timestamp,
         }
      )
-     
-     print(f"Reporting to MQTT topic {MQTT_STATETOPIC}: {message}")
+     print(f"Reporting AllState to MQTT topic {MQTT_STATETOPIC}: {message}")
      client.publish(MQTT_STATETOPIC, message)
 
 # Callback function to manage incoming messages
@@ -119,65 +229,49 @@ def sub_cb(topic, msg):
     try:
         # Decodifica il messaggio JSON
         data = ujson.loads(msg)
+        print(data) 
         if data['boardID'] == MY_MQTT_CLIENT_ID:
-            # Processa il JSON per eseguire i comandi
-            process_json(command_map, data)
+            # Processa il JSON per eseguire i comand
+            ms = ["write"]
+            process_json(command_map, data, [], ms)
+            #process_json(command_map, data)
     except ValueError as e:
         print("Errore di decodifica JSON:", e)
-
-def readRadarMode():
-    mode = None
-    if radar.enable_configuration_mode():
-        mode = radar.query_target_tracking()
-        radar.end_configuration_mode()
-    if mode == 1:
-        return "singolo"
-    else:
-        return "multi"
-
-def readFW():
-    global radar
-    data = None
-    if radar.enable_configuration_mode():
-        data = radar.read_firmware_version()
-        radar.end_configuration_mode()
-    return data    
         
-def reboot():
-    if radar.enable_configuration_mode():
-        lista_x = [0, 0, 0]
-        lista_y = [0, 0, 0]
-        lista_v = [0, 0, 0]
-        lista_dr = [0, 0, 0]
-        radar.restart_module()
-        radar.end_configuration_mode()
-
 def setBaudRate(rate):
-    if radar.enable_configuration_mode():
-        radar.set_serial_port_baud_rate(rate)
-        radar.end_configuration_mode()
-
-def setRadarMode(mode):
-    if radar.enable_configuration_mode():
-        if mode:
-            radar.multi_target_tracking()
-        else:
-            radar.single_target_tracking()
-        radar.end_configuration_mode()
-        
-def restoreRadarFactory():
-    if radar.enable_configuration_mode():
-        radar.restore_factory_settings()
-        radar.end_configuration_mode()
-
+   radar.set_baud_rate(int(rate))
+       
 def scrivi_radarToggle(val):
+    global lista_x
+    global lista_y
+    global filter_x
+    global filter_y
+    global lista_n
+    global filter_v
+    global lista_dr
+    
     if S_ON.value():
         S_ON.value(0)
     else:
         S_ON.value(1)
     leggi_radarState()
+    lista_x = []
+    lista_y = []
+    lista_n = []
+    lista_v = []
+    lista_dr = []
+    filter_x = MovingStatistics(window_size=10, num_sensors=len, alpha=0.125, quantile=0.5, quantile_low=0.25, quantile_high=0.75)
+    filter_y = MovingStatistics(window_size=10, num_sensors=len, alpha=0.125, quantile=0.5, quantile_low=0.25, quantile_high=0.75)        
+    filter_v = MovingStatistics(window_size=10, num_sensors=len, alpha=0.125, quantile=0.5, quantile_low=0.25, quantile_high=0.75)
+    filter_dr = MovingStatistics(window_size=10, num_sensors=len, alpha=0.125, quantile=0.5, quantile_low=0.25, quantile_high=0.75)
 # Funzioni di comando
-
+def jumpReset(valore):
+    print(f"Scrivi calibra il target {valore}")
+    global jumper
+    index = int(valore) - 1
+    jumper.startCalibration(index)
+    pubStateAtt("jmpcalibr", valore)
+    
 def scrivi_pollTime(valore):
     global pollTime
     print(f"Scrivi pollTime a {valore}")
@@ -186,47 +280,97 @@ def scrivi_pollTime(valore):
 
 def scrivi_servel(valore):
     global radarvel
-    global uart
+    global config
     radarvel = int(valore)
     print(f"Scrivi servel a {valore}")
-    config = {
-        'serial_speed': radarvel,
-        #'another_setting': 'value'
-    }
+    config['serial_speed'] = radarvel
     save_config('config.json', config)  
-    setBaudRate(radarvel)
-    reboot()
-    uart.init(radarvel, bits=8, parity=None, stop=1)  
+    pubStateAtt("servel", val)
 
 def scrivi_radarMode(valore):
+    global config
     print(f"Scrivi radarMode a {valore}")
-    if valore == "multi":
-        setRadarMode(True)
-    else:
-        setRadarMode(False)
+    radar.set_reporting(int(valore))
+    config['radarmode'] = int(valore)
+    save_config('config.json', config)
     leggi_radarMode()
 
-def scrivi_radarReboot(valore):
-    print(f"Scrivi radarReboot a {valore}")
-    reboot()
-    leggi_reboot()
-
 def scrivi_radarFactory(valore):
-    global radarvel
+    global config
     print(f"Scrivi radarFactory a {valore}")
-    restoreRadarFactory()
-    radarvel = 256000
-    print(f"Scrivi servel a {valore}")
-    config = {
-        'serial_speed': radarvel,
-        #'another_setting': 'value'
-    }
+    radar.restore_factory_settings()
+    radarvel = 9600
+    config = default_config
     save_config('config.json', config)
-    reboot()
-    uart.init(radarvel, bits=8, parity=None, stop=1)
+    pubStateAtt("radarfactory", val)
+
+def scrivi_tipo_area(val):
+    global config
+    print(f"Scrivi_tipo_area a {val}")
+    r = radar.set_filtermode_region(val)
+    config['regions'] = r
+    save_config('config.json', config)
+    leggi_regioni()
+    
+def disable_region(area): #0x02
+    print("Disabilita regione: ", area)
+    global config
+    r = radar.disable_region(area)
+    config['regions'] = r
+    save_config('config.json', config)
+    leggi_regioni()
+    
+def disable_all_region(): #0x02
+    global config
+    print("ds1")
+    r = radar.disable_all_regions()
+    print("ds2")
+    config['regions'] = r
+    print("ds3")
+    save_config('config.json', config)
+    print("ds4")
+    leggi_regioni()
+    print("ds5")
+
+def delete_all_regions(val):
+    global config
+    print("de1")
+    r = radar.delete_all_regions()# imposta le regioni di default nel dispositivo
+    print("de2")
+    save_config('config.json', config)# imposta le regioni di default nella MCU
+    print("de3")
+    leggi_regioni()
+    print("de4")
+     
+def enable_region(area): #0x02
+    global config
+    print("Abilita regione: ", area)
+    r = radar.enable_region(area)# restituisce TUTTE le regioni sul dispositivo
+    print("Salva regione")
+    config['regions'] = r
+    save_config('config.json', config)# sincronizza le regioni sulla MCU con quelle MODIFICATE sul dispositivo
+    print("Leggi regioni")
+    leggi_regioni()
+
+def scrivi_regioni(val):
+    global config
+    print("Scrivi regioni: ", val)
+    val2 = radar.set_region(val)# restituisce TUTTE le regioni sul dispositivo
+    config['regions'] = val2
+    save_config('config.json', config)# sincronizza le regioni sulla MCU con quelle MODIFICATE sul dispositivo
+    leggi_regioni()
+       
+# FEEDBACKS ---------------------------------------------------------------------------------------------------
 def leggi_radarState():
     print("Leggi radarstate")
     pubStateAtt("radarstate", "on" if S_ON.value() else "off")
+    
+def leggi_regioni():
+    print("Leggi regioni")
+    #val1 = radar.query_zone_filtering()
+    #print(val1)
+    val = radar.get_regionsFromRAM()
+    pubStateAtt("regions", val)
     
 def leggi_radarfw():
     global radarFW
@@ -246,13 +390,16 @@ def leggi_pollTime():
 
 def leggi_radarMode():
     print("Leggi radarMode")
-    val = readRadarMode()
+    val = radar.get_stateFromRAM()
     pubStateAtt("radarmode", val)
     
-def leggi_reboot():
-    print("Leggi reboot")
-    pubStateAtt("radareboot", 1) 
-    
+def readFW():
+    global radar
+    data = None
+    if radar.enable_configuration_mode():
+        data = radar.read_firmware_version()
+        radar.end_configuration_mode()
+    return data    
 # Map of the functions to be executed on a certain path of the received commands (statuses).
 # They must coincide with the corresponding paths of the JSON object being transmitted.
 # Read-only commands are parameterless and can be invoked in JSON as cells in a command list. For example, with JSON
@@ -264,7 +411,7 @@ def leggi_reboot():
 # "configs": {
 # 	"write":{
 # 		"polltime": 1
-# 		"servel": 115200
+# 		"servel": defaultrate
 # 	},
 # }
 command_map = {
@@ -272,22 +419,29 @@ command_map = {
     "config": {
         "write": {# commands whose reception causes a configuration action on the system
             "polltime": scrivi_pollTime,
-            "servel": scrivi_servel,
+            "servel": setBaudRate,
             "radarmode": scrivi_radarMode,
-            "radareboot": scrivi_radarReboot,
-            "radartoggle": scrivi_radarToggle #scrivi_radarFactory,
+            "radarfactory": scrivi_radarFactory,
+            "radartoggle": scrivi_radarToggle,
+            "areaenable": enable_region,
+            "areadisable": disable_region,
+            "areareset": delete_all_regions,
+            "region": scrivi_regioni,
+            "areatype": scrivi_tipo_area,
+            "jmpcalibr": jumpReset,
         },
         "read": {# commands whose reception causes the sending of a system status
             "radarfw": leggi_radarfw,
             "servel": leggi_servel,
             "polltime": leggi_pollTime,
             "radarmode": leggi_radarMode,
-            "allstate": pubAllState,
+            "allstate": getAllState,
             "radarstate": leggi_radarState,
+            "regions": leggi_regioni,
         }
     }
 }
-
+"""
 if len(devices) == 0:
   print("No i2c device !")
 else:
@@ -297,61 +451,54 @@ else:
     print("Decimal address: ",device)
 
   for _ in range(3):
-    print(bme.temperature, bme.humidity, bme.pressure, bme.gas)
+    print(bme.temperature, #bme.humidity, #bme.pressure, #bme.gas)
     time.sleep(1)
-    
+"""    
 
 i = 0
 ok = False
-temp = bme.temperature
-press = bme.pressure
-hum =  bme.humidity
-gas = bme.gas
+temp = 0#bme.temperature
+press = 0#bme.pressure
+hum =  0#bme.humidity
+gas = 0#bme.gas
 
 t1 =DiffTimer()
 t2 =DiffTimer2()
 t3 =DiffTimer2()
+t4 =DiffTimer2()
 t1.start()
 t2.setBase(500)
 t2.start()
 t3.setBase(500)
 t3.start()
+#t4.setBase(500)
+#t4.stop()
 
-sensor = LTR329(i2c)
-ch0, ch1, lux_ch0, lux_ch1, total_lux = sensor.get_lux()
-print("Canale 0 (luce visibile):", ch0, "lux")
-print("Canale 1 (luce infrarossa):", ch1, "lux")
-print("Lux luce visibile:", lux_ch0, "lux")
-print("Lux luce infrarossa:", lux_ch1, "lux")
-print("Lux totale:", total_lux, "lux")
+#sensor = LTR329(i2c)
+#ch0, ch1, lux_ch0, lux_ch1, total_lux = sensor.get_lux()
+#print("Canale 0 (luce visibile):", ch0, "lux")
+#print("Canale 1 (luce infrarossa):", ch1, "lux")
+#print("Lux luce visibile:", lux_ch0, "lux")
+#print("Lux luce infrarossa:", lux_ch1, "lux")
+#print("Lux totale:", total_lux, "lux")
 
 # Costante di smoothing per la media esponenziale pesata (0 < alpha <= 1)
 alpha = 0.125
 beta = 0.25
-pollTime = 2000
-data = radar.printTargets()
-if data is None:
-    lista_x = [0, 0, 0]
-    lista_y = [0, 0, 0]
-    lista_v = [0, 0, 0]
-    lista_dr = [0, 0, 0]
-else:
-    lista_x = data.get('lista_x', [])
-    lista_y = data.get('lista_y', [])
-    lista_v = data.get('lista_v', [])
-    lista_dr = data.get('lista_dr', [])
+#pollTime = 2000
 
 while not ok:
-    try:
+    #try:
         # WiFi configuration
-        print(f"Connecting to WiFi {WIFI_SSID}...", end="")
-        (ip, wlan_mac, sta_if) = wifi_connect(WIFI_SSID, WIFI_PASSWORD)
+    (ip, wlan_mac, sta_if) = wifi_connect2(WIFI_SSID1, WIFI_PASSWORD1, WIFI_SSID2, WIFI_PASSWORD2)
+    try:    
         print(" Connected!")
         print(f"ip: {ip}, mac: {bin2hex(wlan_mac)}")
         esp32_unique_id = MQTT_CLIENT_ID + bin2hex(wlan_mac)
         # MQTT init
         #MQTT_CLIENT_ID_RND = MQTT_CLIENT_ID + random_string()
         MY_MQTT_CLIENT_ID = MQTT_CLIENT_ID + str(bin2hex(wlan_mac))#+":"+ random_string()
+        print(f"mqtt_id: {MY_MQTT_CLIENT_ID}")
         client1 = MQTTClient(MY_MQTT_CLIENT_ID, MQTT_BROKER1, user=MQTT_USER, password=MQTT_PASSWORD)
         client2 = MQTTClient(MY_MQTT_CLIENT_ID, MQTT_BROKER2, user=MQTT_USER, password=MQTT_PASSWORD)
         # Imposta la funzione di callback per la sottoscrizione
@@ -366,10 +513,11 @@ while not ok:
         print("NTP connected.")
         ok = True
     except OSError as e:
-        print(e)
+        print("Errore", e)
         i += 1
         time.sleep(i)
 
+time.sleep(1)
 # Prova a connettersi al primo broker
 print("Connecting to primary broker...")
 client = client1
@@ -379,40 +527,36 @@ if not connect_and_subscribe(client1, MQTT_CMDTOPIC):
     client = client2
 
 time.sleep(0.5)
-#radarFW = readFW()
 #ema = MovingStatistics(window_size=10, num_sensors=3, alpha=0.125)
 filter_x = MovingStatistics(window_size=10, num_sensors=3, alpha=0.125, quantile=0.5, quantile_low=0.25, quantile_high=0.75)
 filter_y = MovingStatistics(window_size=10, num_sensors=3, alpha=0.125, quantile=0.5, quantile_low=0.25, quantile_high=0.75)
 filter_v = MovingStatistics(window_size=10, num_sensors=3, alpha=0.125, quantile=0.5, quantile_low=0.25, quantile_high=0.75)
 filter_dr = MovingStatistics(window_size=10, num_sensors=3, alpha=0.125, quantile=0.5, quantile_low=0.25, quantile_high=0.75)
-filterx = MovingStatistics(window_size=10, num_sensors=3, alpha=0.125, quantile=0.5, quantile_low=0.25, quantile_high=0.75)
+getAllState()
+
 
 while True:
     try:
-        if S_ON.value():
-            data = radar.printTargets()
-            if data is not None:
-                #update_ema(data.get('lista_v', []), lista_v, alpha)
-                #update_ema(data.get('lista_dr', []), lista_dr, alpha)
-                #update_ema(data.get('lista_x', []), lista_x, alpha)# stima candidata x
-                #update_ema(data.get('lista_y', []), lista_y, alpha)# stima candidata y
-                lista_x = filter_x.update(data.get('lista_x', []), ['emafilter']).get('emafilter')
-                lista_y = filter_y.update(data.get('lista_y', []), ['emafilter']).get('emafilter')
-                lista_v = filter_v.update(data.get('lista_v', []), ['emafilter']).get('emafilter')
-                lista_dr = filter_dr.update(data.get('lista_dr', []), ['emafilter']).get('emafilter')
-                
-                #lista_x = filter_x.update(data.get('lista_x', []), ['smafilter']).get('smafilter')
-                #lista_y = filter_y.update(data.get('lista_y', []), ['smafilter']).get('smafilter')
-                #lista_v = filter_v.update(data.get('lista_v', []), ['smafilter']).get('smafilter')
-                #lista_dr = filter_dr.update(data.get('lista_dr', []), ['smafilter']).get('smafilter')
-
-        else:
-            lista_x = [0, 0, 0]
-            lista_y = [0, 0, 0]
-            lista_v = [0, 0, 0]
-            lista_dr = [0, 0, 0]
-            
         client = check_and_process_messages(client, client1, client2, MQTT_CMDTOPIC)
+        if S_ON.value():
+            val = radar.printTargets()
+            if val is not None:
+                mode = radar.get_stateFromRAM()
+                if mode != 2:
+                    if filter_x.getNumSensors() != 3:                
+                        filter_x = MovingStatistics(window_size=10, num_sensors=3, alpha=0.125, quantile=0.5, quantile_low=0.25, quantile_high=0.75)
+                        filter_y = MovingStatistics(window_size=10, num_sensors=3, alpha=0.125, quantile=0.5, quantile_low=0.25, quantile_high=0.75)
+                    lista_x = filter_x.update(val.get('lista_x', []), ['emafilter']).get('emafilter')
+                    lista_y = filter_y.update(val.get('lista_y', []), ['emafilter']).get('emafilter')
+                    lista_v = filter_v.update(val.get('lista_v', []), ['emafilter']).get('emafilter')
+                    lista_dr = filter_dr.update(val.get('lista_dr', []), ['emafilter']).get('emafilter')
+                    lista_n = val.get('ntarget', [])
+                    result = jumper.detect_jump(val.get('lista_x', []), val.get('lista_v', []))
+                else:
+                    lista_x = []
+                    lista_y = []
+                    lista_n = val.get('ntarget', [])
+
         if t1.get() > 500:
             #print('t2',t2.peek())
             t1.reset()
@@ -450,12 +594,12 @@ while True:
                     hum =  1
                     gas = 1
                 else:
-                    temp = bme.temperature
-                    press = bme.pressure
-                    hum =  bme.humidity
-                    gas = bme.gas
+                    temp = 0#bme.temperature
+                    press = 0#bme.pressure
+                    hum =  0#bme.humidity
+                    gas = 0#bme.gas
                     
-                ch0, ch1, lux_ch0, lux_ch1, total_lux = sensor.get_lux()               
+                ch0, ch1, lux_ch0, lux_ch1, total_lux = [0, 0, 0, 0, 0] #sensor.get_lux()               
                 visible = lux_ch0
                 infrared = lux_ch1
                 total = total_lux
@@ -466,7 +610,7 @@ while True:
                                     
                 timestamp = getTimestamp()
                 
-                # Json of the measurements sent in push mode to the MQTT broker
+                # Json of the measurelista_nments sent in push mode to the MQTT broker
                 message = ujson.dumps(
                     {
                         "measures":{
@@ -484,8 +628,13 @@ while True:
                             "radar": {
                                 "x": round_2(lista_x),
                                 "y": round_2(lista_y),
-                                "vel": round_2(lista_v),
-                                "distres": round_2(lista_dr),
+                                "n": lista_n,
+                            },
+                            "jump": {
+                                "hzre": round_2(result["hzre"]),
+                                "hzth": round_2(result["hzth"]),
+                                "vz0": round_2(result["vz0"]),
+                                "vert": round_2(result["vert"]),
                             },
                         },
                         "boardID": esp32_unique_id,
@@ -497,15 +646,25 @@ while True:
                 # mqtt message publishing
                 client.publish(MQTT_PUSHTOPIC, message)                             
                 #S_ON.value(0)
-        elif t2.peek() == 1500:
-                pass
-                #S_ON.value(1)
-                #time.sleep(0.5)
-                #print('Accendo radar')
-                #reboot()
-                
+        """
+        if t4.update() > 1000:
+            print("Riacceso radar")
+            t2.stop()
+            S_ON.value(1)
+        """ 
+    #except KeyboardInterrupt:
+        
+        #client.disconnect()
+        #print("Mqtt port closed.")
     except ValueError as ve:
+        sys.print_exception(e)
         print(ve)
+        client.disconnect()
     except OSError as e:
-                print(e)    
-            #time.sleep(5)
+        sys.print_exception(e)
+        client.disconnect()
+        print(e)    
+    except Exception as e:
+        sys.print_exception(e)
+
+
