@@ -1,8 +1,10 @@
+import time
+
 class EMAFilter:
    def __init__(self, alpha):
        self.alpha = alpha
        self.value = None
-   
+   import time
    def update(self, new_value):
        if self.value is None:
            self.value = new_value
@@ -18,10 +20,11 @@ class JumpDetection:
         self.h1z = [0, 0, 0]
         self.is_jumping = [False, False, False]
         self.initial_vz = [0, 0, 0]
-        self.nsamples = 1000
         self.isCalibration = [False, False, False]
+        self.calibrated = [0, 0, 0]
         self.sampleCount = [0, 0, 0]
         self.showJump = [False, False, False] 
+        self.startTime = [0, 0, 0]
         
         # Filtri EMA
         self.alpha = 0.2  
@@ -78,10 +81,11 @@ class JumpDetection:
     def calculate_theoretical_height(self, v0):
         return (v0 * v0) / (2 * self.g)
         
-    def startCalibration(self, index, nsamples=1000):
-        self.nsamples = nsamples
+    def startCalibration(self, index, timeout=10):
+        self.timeout = timeout*1000
         self.isCalibration[index] = True
         self.showJump[index] = False
+        self.startTime[index] = time.ticks_ms()
    
     def detect_jump(self, z, vz):
         VELOCITY_THRESHOLD = 0.5      # 0.5 m/s = 500 mm/s
@@ -96,6 +100,7 @@ class JumpDetection:
             'hzth': [],
             'vz0': [],
             'vert': [],  # m/s
+            'cal': [],
         }
         
         l = len(z)
@@ -106,17 +111,17 @@ class JumpDetection:
                 is_vertical = self.is_vertical_motion(i)
            
                 if self.isCalibration[i]:
-                    print(f"Sto calibrando il target {i}")
-                    self.h0z[i] = self.h0z[i] + filtered_z
-                    self.sampleCount[i] = self.sampleCount[i] + 1
-                    measured_height = 0
-                    theoretical_height = 0
+                        print(f"Sto calibrando il target {i}")
+                        self.h0z[i] = self.h0z[i] + filtered_z
+                        self.sampleCount[i] = self.sampleCount[i] + 1
+                        measured_height = 0
+                        theoretical_height = 0
                     
-                    if self.sampleCount[i] > self.nsamples:
-                        self.h0z[i] = self.h0z[i] / self.nsamples
-                        self.isCalibration[i] = False
-                        print(f"Initial height calibrated: x: {self.h0z}")
-                        print(f"Stato preparazione per {i}")
+                        if self.isCalibration[i] and time.ticks_diff(time.ticks_ms(), self.startTime[i]) > self.timeout:
+                            self.h0z[i] = self.h0z[i] / self.sampleCount[i]
+                            self.isCalibration[i] = False
+                            print(f"Initial height calibrated: x: {self.h0z}")
+                            print(f"Stato fine calibrazione {i}")
                 else:
                     print(f"Params: filtered_z {filtered_z}, filtered_vz {filtered_vz}, is_vertical {is_vertical}")
                     
@@ -145,6 +150,7 @@ class JumpDetection:
                 result['hzth'].append(theoretical_height)
                 result['vz0'].append(vz[i])
                 result['vert'].append(self.showJump[i])
+                result['cal'].append(self.isCalibration[i])
                 
         return result
         
