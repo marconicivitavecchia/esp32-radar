@@ -107,6 +107,44 @@ def wifi_connect(ssid, key):
     except OSError as e:
         raise  # re raises the previous exception
 
+def wifi_connect2(ssid_1, key_1, ssid_2, key_2, max_retries=10):
+    sta_if = network.WLAN(network.STA_IF)
+    sta_if.active(True)
+    retries = 0
+    
+    def try_connect(ssid, key):
+        timeout = 10
+        limit = 0;
+        try:
+            print(f"Attempting to connect to {ssid}... ({retries + 1}/{max_retries})")
+            sta_if.connect(ssid, key)
+            while not sta_if.isconnected() and limit < timeout:
+                print(".", end="")
+                time.sleep(0.1)
+                limit += 0.1
+                
+        except OSError as e:
+                print(f'Connection attempt {retries + 1} failed: {e}')
+        return sta_if.isconnected()
+    
+    while not sta_if.isconnected() and retries < max_retries:
+        
+        # Primo tentativo con il primo SSID
+        if try_connect(ssid_1, key_1):
+            print(f"Connected to {ssid_1}")
+        # Se il primo fallisce, tenta il secondo SSID
+        elif try_connect(ssid_2, key_2):
+            print(f"Connected to {ssid_2}")
+        retries += 1
+    
+    if retries > max_retries:
+        raise OSError("Unable to connect to any SSID.")
+    
+    # Ritorna l'indirizzo IP, il MAC e l'oggetto WLAN se connesso
+    ip = sta_if.ifconfig()[0]
+    wlan_mac = sta_if.config('mac')
+    return (ip, wlan_mac, sta_if)
+
 # Function that retrieves and invoke the function at the command path
 def execute_command(command_map, command_path, parameters=None):
     current_level = command_map
@@ -129,13 +167,20 @@ def execute_command(command_map, command_path, parameters=None):
 # Returns the path of the command in the received JSON data structure. 
 # The path must correspond to the path of the function to be called in the data structure of the command map. 
 # Invokes the function which, in the command map, has its pointer on that path.
-def process_json(command_map, json_obj, base_path=[]):
+def process_json(command_map, json_obj, prev_path=[], measures = []):
+    measure = False
+    
+    if prev_path and prev_path[-1] in measures:  # basePath[-1] ottiene l'ultimo elemento
+        measure = True
+        
+    print('measure', measure)
+        
     for key, value in json_obj.items():
-        current_path = base_path + [key]
+        current_path = prev_path + [key]
         print('current_path',current_path)
         print('value',value)
-        if isinstance(value, dict):
-            process_json(command_map, value, current_path)
+        if isinstance(value, dict) and not measure:
+            process_json(command_map, value, current_path, measures)
         elif isinstance(value, list):# se è una lista di funzioni senza parametri
             for item in value:
                 execute_command(command_map, current_path + [item])
