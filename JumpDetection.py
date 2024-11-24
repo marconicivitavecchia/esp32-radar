@@ -118,6 +118,8 @@ class JumpDetection:
                         print(f"Initial height calibrated: x: {self.h0z}")
                         print(f"Stato preparazione per {i}")
                 else:
+                    print(f"Params: filtered_z {filtered_z}, filtered_vz {filtered_vz}, is_vertical {is_vertical}")
+                    
                     # Se non è in corso un salto e viene rilevata velocità verticale positiva
                      # Inizio salto: velocità significativa e movimento verticale
                     if not self.is_jumping and vz[i] > VELOCITY_THRESHOLD and is_vertical:  
@@ -125,11 +127,13 @@ class JumpDetection:
                         self.h1z[i] = filtered_z# Memorizza altezza CORRENTE come prima della sequenza di salto
                         self.initial_vz[i] = filtered_vz# Memorizza velocità iniziale
                         print(f"Stato salto per {i}")
+                        print(f"Con velocità iniziale {self.initial_vz[i]}")
                     elif self.is_jumping[i]:
                         self.showJump[i] = True
                         # Aggiorna massima altezza raggiunta (in metri)
                         if filtered_z > self.h1z[i]:
                             self.h1z[i] = filtered_z
+                            print(f"Sto saltando a {self.h1z[i]}")
                         # Atterraggio: velocità verso il basso e quota vicina all'iniziale
                         if filtered_vz > LANDING_VELOCITY  and filtered_z <= self.h0z[i] + LANDING_HEIGHT_MARGIN:  # Atterraggio
                             measured_height = self.h1z[i] - self.h0z[i]
