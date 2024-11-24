@@ -1,6 +1,7 @@
-
-#WIFI_SSID = "sensori"
-#WIFI_PASSWORD = "sensori2019"
+WIFI_SSID1 = "ssid1"
+WIFI_PASSWORD1 = "psw1"
+WIFI_SSID2 = "ssid2"
+WIFI_PASSWORD2 = "psw2"
 MQTT_CLIENT_ID = "radar-"
 # The main broker is the preferred broker
 # The backup broker is choosen only when the main broker is unavailable
