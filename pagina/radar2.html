@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Radar Display</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+	<script>
+		if (typeof p5 === 'undefined') {
+            document.write('<script src="p5.js"><\/script>');
+        }
+	</script>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+	<script>
+        if (typeof mqtt === 'undefined') {
+            document.write('<script src="mqtt.min.js"><\/script>');
+        }
+    </script>
+	<link rel="stylesheet" href="gridlayout.css">
+</head>
+<body>
+	<script>
+		const broker1 = 'wss://proxy.marconicloud.it:8884'; // Sostituisci con l'URL del tuo broker MQTT e assicurati che utilizzi wss (WebSocket Secure) se necessario
+		const broker2 = 'ws://broker.emqx.io:8083/mqtt';
+		const pushtopic = 'radar/misure'; // Sostituisci con il tuo topic MQTT
+		const cmdtopic = 'radar/comandi'; // Sostituisci con il tuo topic MQTT
+		const statetopic = 'radar/stato'; // Sostituisci con il tuo topic MQTT
+    </script>
+	<div class='col-12 col-s-12' id='txt-banner'  class="header"><h2 class="header">Monitoraggio radar</h2></div>
+	<script src="radar2.js"></script>
+	<div class='grid-container'></div>
+    </div>
+	</div>
+</body>
+</html>

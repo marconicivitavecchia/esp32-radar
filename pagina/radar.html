@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Radar Display</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+	<script>
+		if (typeof p5 === 'undefined') {
+            document.write('<script src="p5.js"><\/script>');
+        }
+	</script>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+	<script>
+        if (typeof mqtt === 'undefined') {
+            document.write('<script src="mqtt.min.js"><\/script>');
+        }
+    </script>
+	<link rel="stylesheet" href="gridlayout.css">
+</head>
+<body>
+	<script>
+		const broker1 = 'wss://proxy.marconicloud.it:8884'; // Sostituisci con l'URL del tuo broker MQTT e assicurati che utilizzi wss (WebSocket Secure) se necessario
+		const broker2 = 'ws://broker.emqx.io:8083/mqtt';
+		const pushtopic = 'radar/misure'; // Sostituisci con il tuo topic MQTT
+		const cmdtopic = 'radar/comandi'; // Sostituisci con il tuo topic MQTT
+		const statetopic = 'radar/stato'; // Sostituisci con il tuo topic MQTT
+		//const boardId = "radar-Alex64e833639008";
+		//const boardId = "radar-f412fa4f7010";	
+		const boardId = "radar-f412fa4f7010";		
+		
+    </script>
+	<div class='grid-container'>
+		<div class='col-12 col-s-12' id='txt-banner'  class="header"><h2 class="header">Monitoraggio radar</h2></div>
+	    <div class='col-12 col-s-12' id="timestamp"></div>
+		<div class='col-9 col-s-12 boxed' id='radar'></div>
+        <div class='col-3 col-s-12 boxed' id="sensorData">
+			<p>Board ID: <span class="boardID">N/A</span></p>
+            <p>Temperatura: <span class="temp">N/A</span></p>
+            <p>Pressione: <span class="press">N/A</span></p>
+            <p>Umidità: <span class="hum">N/A</span></p>
+            <p>Gas: <span class="gas">N/A</span></p>
+			<p>Luce visibile: <span class="visible">N/A</span></p>
+            <p>Luce infrarossa: <span class="infrared">N/A</span></p>
+            <p>Luce totale: <span class="total">N/A</span></p>
+        </div>
+				
+		<div id='poll1' class='col-1 col-s-12'>
+			<div class="txt"><p >Polling time</p></div>
+			<input class="poll1 button-large" type="time" step="1" />
+			<input class="send button-small button-blue" type="button" value="Invia"/>
+		</div>
+		<div class='col-1 col-s-12' id='servel'>
+			<div class="txt"><p >Radar serial</p></div>
+			<select name="vels" class="servel button-large">
+				<option value="9600">9600</option>
+				<option value="19200">19200</option>
+				<option value="38400">38400</option>
+				<option value="57600">57600</option>
+				<option value="115200">115200</option>
+				<option value="230400">230400</option>
+				<option value="256000">256000</option>
+				<option value="460800">460800</option>
+			</select>
+			<input class="send button-small button-blue" type="button" value="Invia"/>
+		</div>
+		<div class='col-1 col-s-12' id='radarstate'>
+			<div class="txt"><p >Radar state</p></div>
+			<input type="text"  value="0" class="rep">
+			<input type="button" class="send button-blue" value="Invia">
+		</div>
+		<div class='col-1 col-s-12' id='radarfactory'>
+			<div class="txt"><p >Radar factory</p></div>
+			<input type="text"  value="0" class="rep">
+			<input type="button" class="send button-blue" value="Invia">
+		</div>
+		<div class='col-1 col-s-12' id='radarmode'>
+			<div class="txt"><p >Radar mode</p></div>
+			<select name="target" class="sel button-large">
+				<option value="1">Track</option>
+				<option value="2">Report</option>
+				<option value="3">Both</option>
+			</select>
+			<input type="button" class="send button-blue" value="Invia">
+		</div>	
+		<div class='col-1 col-s-12' id='areaenable'>
+			<div class="txt"><p class="txt">Stato area</p></div>
+			<select name="areaenable" class="sel button-large">
+				<option value="1">Enabled</option>
+				<option value="0">Disabled</option>
+			</select>
+			<input type="button" class="send button-blue" value="Invia">
+		</div> 
+		<div class='col-1 col-s-12' id='areatypesel'>
+			<div class="txt"><p>Tipo area</p>
+			</div>
+			<select name="areatype" class="sel button-large">
+				<option value="0">Monitor</option>
+				<option value="1">Filter</option>
+				<option value="2">Crop</option>
+			</select>
+			<input type="button" class="send button-blue" value="Invia">
+		</div>
+		<div class='col-1 col-s-12' id='areasel'>
+			<div class="txt"><p>Seleziona area</p></div>
+			<select name="target" class="sel button-large">
+				<option value="1">Area 1</option>
+				<option value="2">Area 2</option>
+				<option value="3">Area 3</option>
+				<option value="4">Area 4</option>
+				<option value="5">Area 5</option>
+				<option value="6">Area 6</option>
+				<option value="7">Area in 1</option>
+				<option value="8">Area in 2</option>
+				<option value="9">Area in 3</option>
+			</select>
+			<input class="send button-small button-blue" type="button" value="Invia punti"/>
+		</div>
+		<div class='col-1 col-s-12' id='areareset'>
+			<div class="txt"><p >Cancella tutte</p></div>
+			<input type="text"  value="0">
+			<input type="button" class="send button-blue" value="Invia">
+		</div>		
+		<div class='col-1 col-s-12' id='radarinvert'>
+			<p>Inverti griglia</p>
+			<input type="text" class="txt" value="0">
+			<input type="button"  class="send button-blue" value="Invia">
+		</div> 
+		<div class='col-1 col-s-12' id='jmpcalibr'>
+			<div class="txt"><p>Salto target</p></div>
+			<select name="target" class="sel button-large">
+				<option value="1">Target 1</option>
+				<option value="2">Target 2</option>
+				<option value="3">Target 3</option>
+			</select>
+			<input class="send button-small button-blue" type="button" value="Calibra"/>
+		</div>
+		<div class='col-1 col-s-12' id='areavertices'>
+			<div class="txt"><p>Stato</p><br></div>
+			<div id='connstate'>
+				<div id='iotstate'><input class="iotmsg button-text" type="text" value="IoT OFF"/></div>
+				<input class="connmsg button-text" type="text" value="MQTT OFF"/>
+			</div>
+		</div>
+		<div class='col-12 col-s-12' id='txt-nulla' class='footer'><h2 class="footer">Monitoraggio radar</h2></div>	
+	</div>	
+	<script src="radar.js"></script>
+</body>
+</html>
