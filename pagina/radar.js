@@ -12,6 +12,7 @@ var boardData = {
 					hzth: [0, 0, 0, 0, 0],
 					vz0: [0, 0, 0, 0, 0],
 					vert: [0, 0, 0, 0, 0],
+					cal: [0, 0, 0, 0, 0],
 					rot: 0,
 					fw: [0, 0],
 					radarmode: 0,
@@ -1391,10 +1392,12 @@ function connectToBroker() {
 							boardData.radarData.hzth = roundArrTo(getFieldIfExists(val,'hzth'), 2);
 							boardData.radarData.vz0 = roundArrTo(getFieldIfExists(val,'vz0'), 2);
 							boardData.radarData.vert = roundArrTo(getFieldIfExists(val,'vert'), 2);
+							boardData.radarData.cal = roundArrTo(getFieldIfExists(val,'cal'), 2);
 							console.log('hzre:', boardData.radarData.hzre);
 							console.log('hzth:', boardData.radarData.hzth);
 							console.log('vz0:', boardData.radarData.vz0);
-							console.log('vert:', boardData.radarData.verty);
+							console.log('vert:', boardData.radarData.vert);
+							console.log('cal:', boardData.radarData.cal);
 						}
 						val = data.measures.tempSensor
 						if ('null' != val){
@@ -1901,12 +1904,14 @@ function draw() {
 				hzth = Number(rd.hzth[i]);
 				vz0 = Number(rd.vz0[i]);
 				vert = rd.vert[i];
+				cal = rd.cal[i];
 				console.log("isJump: "+vert);
 				if('null' != vert && vert){
 					//fill(255,255,0);
-					text(`Heff: ${hzre}`, scaledX + 5, scaledY - 60);
-					text(`Hmax: ${hzth}`, scaledX + 5, scaledY - 50);
-					text(`Vinit: ${vz0}`, scaledX + 5, scaledY - 40);
+					text(`Heff: ${hzre}`, scaledX + 5, scaledY - 70);
+					text(`Hmax: ${hzth}`, scaledX + 5, scaledY - 60);
+					text(`Vinit: ${vz0}`, scaledX + 5, scaledY - 50);
+					text(`Calibrato: ${cal}`, scaledX + 5, scaledY - 40);
 					fill(255,0,0);
 					text(`Jump!`, scaledX + 5, scaledY - 70);
 					text(`   `, scaledX + 5, scaledY - 30);

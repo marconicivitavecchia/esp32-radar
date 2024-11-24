@@ -117,6 +117,7 @@ function connectToBroker() {
 							hzth: [0, 0, 0, 0, 0],
 							vz0: [0, 0, 0, 0, 0],
 							vert: [0, 0, 0, 0, 0],
+							cal: [0, 0, 0, 0, 0],
 							rot: 0,
 							fw: [0, 0],
 							radarmode: 0,
@@ -222,6 +223,7 @@ const commandMap = {
 			rd.hzth = roundArrTo(getFieldIfExists(value,'hzth'), 2);
 			rd.vz0 = roundArrTo(getFieldIfExists(value,'vz0'), 2);
 			rd.vert = roundArrTo(getFieldIfExists(value,'vert'), 2);
+			rd.cal = roundArrTo(getFieldIfExists(value,'cal'), 2);
 			rd.regions.ntarget = value.n.map(Number);
 			console.log('rd.x ', rd.x);
 			console.log('rd.y ', rd.y);
@@ -2104,10 +2106,12 @@ function createCanvasInstances(boardID) {
 						hzre = Number(radarData.hzre[i]);
 						hzth = Number(radarData.hzth[i]);
 						vz0 = Number(radarData.vz0[i]);
+						cal = Number(radarData.cal[i]);
 						if(radarData.vert[i]){
-							text(`Heff: ${hzre}`, scaledX + 5, scaledY - 60);
-							text(`Hmax: ${hzth}`, scaledX + 5, scaledY - 50);
-							text(`Vinit: ${vz0}`, scaledX + 5, scaledY - 40);
+							text(`Heff: ${hzre}`, scaledX + 5, scaledY - 70);
+							text(`Hmax: ${hzth}`, scaledX + 5, scaledY - 60);
+							text(`Vinit: ${vz0}`, scaledX + 5, scaledY - 50);
+							text(`Calibrato: ${cal}`, scaledX + 5, scaledY - 40);
 							fill(255,0,0);
 							text(`Jump!`, scaledX + 5, scaledY - 70);
 							text(`   `, scaledX + 5, scaledY - 30);
