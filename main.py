@@ -29,6 +29,7 @@ from adafruit_ltr329_ltr303 import LTR329
 from movingStatistics2 import *
 from serial_protocol import *
 from JumpDetection import *
+from MotionTracker import *
 
 S_ON = Pin(3, Pin.OUT) # PIN RADAR POWER MENAGEMENT ESP32
 #S_ON = Pin(42, Pin.OUT) # PIN RADAR POWER MENAGEMENT ALEMAX
@@ -99,6 +100,7 @@ uart = UART(1, baudrate=radarvel, bits=8, parity=None, stop=1, rx=1, tx=2) #ESP3
 #uart = UART(1, baudrate=radarvel, bits=8, parity=None, stop=1, rx=18, tx=17) #ALEMAX
 radar = Radar(uart)
 jumper = JumpDetection()
+
 result = []
 print('Baud rate', radarvel)
 """
@@ -528,12 +530,13 @@ if not connect_and_subscribe(client1, MQTT_CMDTOPIC):
 
 time.sleep(0.5)
 #ema = MovingStatistics(window_size=10, num_sensors=3, alpha=0.125)
-filter_x = MovingStatistics(window_size=10, num_sensors=3, alpha=0.125, quantile=0.5, quantile_low=0.25, quantile_high=0.75)
-filter_y = MovingStatistics(window_size=10, num_sensors=3, alpha=0.125, quantile=0.5, quantile_low=0.25, quantile_high=0.75)
-filter_v = MovingStatistics(window_size=10, num_sensors=3, alpha=0.125, quantile=0.5, quantile_low=0.25, quantile_high=0.75)
-filter_dr = MovingStatistics(window_size=10, num_sensors=3, alpha=0.125, quantile=0.5, quantile_low=0.25, quantile_high=0.75)
+#filter_x = MovingStatistics(window_size=10, num_sensors=3, alpha=0.125, quantile=0.5, quantile_low=0.25, quantile_high=0.75)
+#filter_y = MovingStatistics(window_size=10, num_sensors=3, alpha=0.125, quantile=0.5, quantile_low=0.25, quantile_high=0.75)
+#filter_v = MovingStatistics(window_size=10, num_sensors=3, alpha=0.125, quantile=0.5, quantile_low=0.25, quantile_high=0.75)
+#filter_dr = MovingStatistics(window_size=10, num_sensors=3, alpha=0.125, quantile=0.5, quantile_low=0.25, quantile_high=0.75)
 getAllState()
-
+trackers = [MotionTracker() for _ in range(3)]
+filtered = []
 
 while True:
     try:
@@ -543,15 +546,27 @@ while True:
             if val is not None:
                 mode = radar.get_stateFromRAM()
                 if mode != 2:
-                    if filter_x.getNumSensors() != 3:                
-                        filter_x = MovingStatistics(window_size=10, num_sensors=3, alpha=0.125, quantile=0.5, quantile_low=0.25, quantile_high=0.75)
-                        filter_y = MovingStatistics(window_size=10, num_sensors=3, alpha=0.125, quantile=0.5, quantile_low=0.25, quantile_high=0.75)
-                    lista_x = filter_x.update(val.get('lista_x', []), ['emafilter']).get('emafilter')
-                    lista_y = filter_y.update(val.get('lista_y', []), ['emafilter']).get('emafilter')
-                    lista_v = filter_v.update(val.get('lista_v', []), ['emafilter']).get('emafilter')
-                    lista_dr = filter_dr.update(val.get('lista_dr', []), ['emafilter']).get('emafilter')
+                    #if filter_x.getNumSensors() != 3:                
+                        #filter_x = MovingStatistics(window_size=10, num_sensors=3, alpha=0.125, quantile=0.5, quantile_low=0.25, quantile_high=0.75)
+                        #filter_y = MovingStatistics(window_size=10, num_sensors=3, alpha=0.125, quantile=0.5, quantile_low=0.25, quantile_high=0.75)
+                    #lista_x = filter_x.update(val.get('lista_x', []), ['emafilter']).get('emafilter')
+                    #lista_y = filter_y.update(val.get('lista_y', []), ['emafilter']).get('emafilter')
+                    #lista_v = filter_v.update(val.get('lista_v', []), ['emafilter']).get('emafilter')
+                    #lista_dr = filter_dr.update(val.get('lista_dr', []), ['emafilter']).get('emafilter')
+                    lista_x = []
+                    lista_y = []
+                    lista_v = []
+                    listx = val.get('lista_x', [])
+                    listy = val.get('lista_y', [])
+                    listv = val.get('lista_v', []) 
+                    for i in range(3):
+                        filtered = trackers[i].update(listx[i], listy[i], listv[i])
+                        lista_x.append(filtered['position']['x'])
+                        lista_y.append(filtered['position']['y'])
+                        lista_v.append(filtered['velocity'])
+                
                     lista_n = val.get('ntarget', [])
-                    result = jumper.detect_jump(val.get('lista_x', []), val.get('lista_v', []))
+                    #result = jumper.detect_jump(val.get('lista_x', []), val.get('lista_v', []))
                 else:
                     lista_x = []
                     lista_y = []
@@ -631,10 +646,11 @@ while True:
                                 "n": lista_n,
                             },
                             "jump": {
-                                "hzre": round_2(result["hzre"]),
-                                "hzth": round_2(result["hzth"]),
-                                "vz0": round_2(result["vz0"]),
-                                "vert": round_2(result["vert"]),
+                                "hzre": 0,#round_2(result["hzre"]),
+                                "hzth": 0,#round_2(result["hzth"]),
+                                "vz0": 0,#round_2(result["vz0"]),
+                                "vert": 0,#round_2(result["vert"]),
+                                "cal": 0,#result["cal"],
                             },
                         },
                         "boardID": esp32_unique_id,

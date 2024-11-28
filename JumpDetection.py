@@ -1,17 +1,5 @@
 import time
 
-class EMAFilter:
-   def __init__(self, alpha):
-       self.alpha = alpha
-       self.value = None
-   import time
-   def update(self, new_value):
-       if self.value is None:
-           self.value = new_value
-       else:
-           self.value = self.alpha * new_value + (1 - self.alpha) * self.value
-       return self.value
-
 class JumpDetection:
     def __init__(self):
         # jump properties
@@ -26,11 +14,6 @@ class JumpDetection:
         self.showJump = [False, False, False] 
         self.startTime = [0, 0, 0]
         
-        # Filtri EMA
-        self.alpha = 0.2  
-        self.ema_z = [EMAFilter(self.alpha) for _ in range(3)]
-        self.ema_vz = [EMAFilter(self.alpha) for _ in range(3)]
-       
         # Pattern detection
         self.HISTORY_SIZE = 5
         self.TREND_SIZE = 3
@@ -38,11 +21,7 @@ class JumpDetection:
         self.trend_buffer = [[] for _ in range(3)]
         self.last_filtered_z = [0, 0, 0]
         
-    def update_buffers(self, i, z, vz):
-        # Aggiorna EMA
-        filtered_z = self.ema_z[i].update(z)
-        filtered_vz = self.ema_vz[i].update(vz)
-
+    def update_buffers(self, i, filtered_z, filtered_vz):
         # Aggiorna storia posizioni
         self.z_history[i].append(filtered_z)
         if len(self.z_history[i]) > self.HISTORY_SIZE:
@@ -69,13 +48,13 @@ class JumpDetection:
        positive_trends = sum(1 for t in trends if t > 0)
        negative_trends = sum(1 for t in trends if t < 0)
        
-       # Calcola movimento medio
+       # Calcola movimento medio (prevalente)
        avg_movement = sum(abs(t) for t in trends) / len(trends)
        
        # Movimento è verticale se:
        # 1. È abbastanza ampio
        # 2. Ha direzione consistente
-       consistency = max(positive_trends, negative_trends) / len(trends)
+       consistency = max(positive_trends, negative_trends) / len(trends)# forchetta
        return avg_movement > VERTICAL_THRESHOLD and consistency > CONSISTENCY_THRESHOLD
 
     def calculate_theoretical_height(self, v0):
@@ -156,8 +135,6 @@ class JumpDetection:
         
 """
 Miglioramenti:
-
-- Filtro EMA su posizione e velocità
 - Buffer per analisi trend
 - Verifica consistenza direzione movimento
 - Soglie movimento verticale più robuste
