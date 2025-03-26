@@ -232,10 +232,10 @@ const commandMap = {
 				gas: roundTo(getFieldIfExists(value,'gas'), 1),
 			}
 			let sensorDataElement = document.querySelector(`#sensorData-${currBoardId}`);
-			sensorDataElement.querySelector('.temp').innertext = `${boardData[currBoardId].tempData.temp} °C`;
-			sensorDataElement.querySelector('.press').innertext = `${boardData[currBoardId].tempData.press} Pa`;
-			sensorDataElement.querySelector('.hum').innertext = `${boardData[currBoardId].tempData.hum} %`;
-			sensorDataElement.querySelector('.gas').innertext = `${boardData[currBoardId].tempData.gas}`;
+			sensorDataElement.querySelector('.temp').innerText = `${boardData[currBoardId].tempData.temp} °C`;
+			sensorDataElement.querySelector('.press').innerText = `${boardData[currBoardId].tempData.press} Pa`;
+			sensorDataElement.querySelector('.hum').innerText = `${boardData[currBoardId].tempData.hum} %`;
+			sensorDataElement.querySelector('.gas').innerText = `${boardData[currBoardId].tempData.gas}`;
 		},
 		luxSensor: (value) =>{
 			console.log('luxSensor ', value);
@@ -245,9 +245,9 @@ const commandMap = {
 				total: roundTo(getFieldIfExists(value,'total'), 4)
 			}
 			let sensorDataElement = document.querySelector(`#sensorData-${currBoardId}`);
-			sensorDataElement.querySelector('.visible').innertext = `${boardData[currBoardId].luxData.visible} Lux`;
-			sensorDataElement.querySelector('.infrared').innertext = `${boardData[currBoardId].luxData.infrared} Lux`;
-			sensorDataElement.querySelector('.total').innertext = `${boardData[currBoardId].luxData.total} Lux`;
+			sensorDataElement.querySelector('.visible').innerText = `${boardData[currBoardId].luxData.visible} Lux`;
+			sensorDataElement.querySelector('.infrared').innerText = `${boardData[currBoardId].luxData.infrared} Lux`;
+			sensorDataElement.querySelector('.total').innerText = `${boardData[currBoardId].luxData.total} Lux`;
 		}
 	},
 	state: {
@@ -262,10 +262,11 @@ const commandMap = {
 				boardData[currBoardId].polltime = Number(value);
 				if(!boardData[currBoardId].timer){
 					boardData[currBoardId].timer = new MonostableTimer(boardData[currBoardId].polltime*2, ()=>{
-						let iotmsg = document.getElementById(`iotmsg-${currBoardId}`);
+						let iotmsg = document.getElementById(`iotstate-${currBoardId}`);
 						iotmsg.style.backgroundColor = "red";
 						iotmsg.style.color = "white";
 						iotmsg.value = "Iot OFF";
+						console.log('Iot OFF');
 					});
 				}
 				setElem(currBoardId, "poll1", millisToTimeString(value), '.poll1');
@@ -327,10 +328,10 @@ const commandMap = {
 		timestampElement.innertext = boardData[currBoardId].timestamp + "   -   FW version: " + boardData[currBoardId].fw;
 	},
 	boardID: (val) => {
-		console.log('boardID');
+		console.log('boardID ', val);
 		let elem = document.getElementById(`sensorData-${currBoardId}`);
 		let inputelem = elem.querySelector('.boardID');
-		inputelem.innerHTML = val;
+		inputelem.innerHTML = val.trim();
 	},
 };
 
@@ -556,12 +557,12 @@ function createBoardSection(boardID) {
 	</div>
 	<div class='col-1 col-s-12' id='radarstate-${boardID}'>
 		<div class="txt"><p >Radar state</p></div>
-		<input type="this.sketch.text"  value="0" class="rep">
+		<input type="text"  value="0" class="rep">
 		<input type="button" class="send button-blue" value="Invia">
 	</div>
 	<div class='col-1 col-s-12' id='radarfactory-${boardID}'>
 		<div class="txt"><p >Radar factory</p></div>
-		<input type="this.sketch.text"  value="0" class="rep">
+		<input type="text"  value="0" class="rep">
 		<input type="button" class="send button-blue" value="Invia">
 	</div>
 	<div class='col-1 col-s-12' id='radarmode-${boardID}'>
@@ -608,20 +609,20 @@ function createBoardSection(boardID) {
 		</div>
 		<div class='col-1 col-s-12' id='areareset-${boardID}'>
 			<div class="txt"><p >Cancella tutte</p></div>
-			<input type="this.sketch.text"  value="0">
+			<input type="text"  value="0">
 			<input type="button" class="send button-blue" value="Invia">
 		</div>		
 		<div class='col-1 col-s-12' id='radarinvert-${boardID}'>
 			<p>Inverti griglia</p>
-			<input type="this.sketch.text" class="txt" value="0">
+			<input type="text" class="txt" value="0">
 			<input type="button"  class="send button-blue" value="Invia">
 		</div> 
 		<div class='col-2 col-s-12' id='areavertices-${boardID}'>
 			<div class="txt"><p>Indicatori di stato</p><br></div>
 
 			<div class="button-container" id='connstate-${boardID}'>
-				<div><input id='iotstate-${boardID}' class="button-text" type="this.sketch.text" value="IoT OFF"/></div>
-				<input class="connmsg button-text" type="this.sketch.text" value="MQTT OFF"/>
+				<div><input id='iotstate-${boardID}' class="button-text" type="text" value="IoT OFF"/></div>
+				<div><input class="connmsg button-text" type="text" value="MQTT OFF"/></div>
 			</div>
 		</div> `
 	
@@ -1951,6 +1952,7 @@ class MonostableTimer {
 
 // Massive update of measurement outputs
 // is used for the massive update of all measurements
+/*
 function updateBoardUI(boardID) {
    
     let timestampElement = document.getElementById(`timestamp-${boardID}`);
@@ -1965,7 +1967,7 @@ function updateBoardUI(boardID) {
     sensorDataElement.querySelector('.infrared').innerthis.sketch.text = `${boardData[boardID].luxData.infrared} Lux`;
     sensorDataElement.querySelector('.total').innerthis.sketch.text = `${boardData[boardID].luxData.total} Lux`;
 }
-
+*/
 // Creazione funzione di setup e loop di disegno di ogni canvas
 function createCanvasInstances(boardID) {
     new p5(function(sketch) {
