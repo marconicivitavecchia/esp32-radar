@@ -1,6 +1,6 @@
 from machine import UART
 from machine import reset as machine_reset
-from bme680 import BME680_I2C
+#from bme680 import *
 from utils import *
 import sys
 
@@ -30,8 +30,8 @@ from movingStatistics2 import *
 from serial_protocol import *
 from JumpDetection import *
 
-#S_ON = Pin(3, Pin.OUT) # PIN RADAR POWER MENAGEMENT ESP32
-S_ON = Pin(42, Pin.OUT) # PIN RADAR POWER MENAGEMENT ALEMAX
+S_ON = Pin(3, Pin.OUT) # PIN RADAR POWER MENAGEMENT ESP32
+#S_ON = Pin(42, Pin.OUT) # PIN RADAR POWER MENAGEMENT ALEMAX
 S_ON.value(1)
 #Pin(18, Pin.IN, Pin.PULL_UP)
 #Pin(17, Pin.IN, Pin.PULL_UP)
@@ -95,8 +95,8 @@ lista_v = []
 lista_dr = []
 lista_n = []
 #uart.init(radarvel, bits=8, parity=None, stop=1)
-#uart = UART(1, baudrate=radarvel, bits=8, parity=None, stop=1, rx=1, tx=2) #ESP32
-uart = UART(1, baudrate=radarvel, bits=8, parity=None, stop=1, rx=18, tx=17) #ALEMAX
+uart = UART(1, baudrate=radarvel, bits=8, parity=None, stop=1, rx=1, tx=2) #ESP32
+#uart = UART(1, baudrate=radarvel, bits=8, parity=None, stop=1, rx=18, tx=17) #ALEMAX
 radar = Radar(uart) 
 
 print('Baud rate', radarvel)
@@ -171,8 +171,8 @@ time.sleep(0.1)
 i2c = SoftI2C(scl=Pin(14),sda=Pin(13))
 #i2c = I2C(-1, sda=Pin(13), scl=Pin(14))
 print('Scan i2c bus...')
-devices = i2c.scan()
-bme = BME680_I2C(i2c=i2c, address=0x76)
+#devices = i2c.scan()
+##bme = #bme680_I2C(i2c=i2c, address=0x76)
 time.sleep(1)
 #radar.read_all_info(radaregions)
 radar.load_regions(radaregions)
@@ -433,7 +433,7 @@ command_map = {
         }
     }
 }
-
+"""
 if len(devices) == 0:
   print("No i2c device !")
 else:
@@ -443,16 +443,16 @@ else:
     print("Decimal address: ",device)
 
   for _ in range(3):
-    print(bme.temperature, bme.humidity, bme.pressure, bme.gas)
+    print(bme.temperature, #bme.humidity, #bme.pressure, #bme.gas)
     time.sleep(1)
- 
+"""    
 
 i = 0
 ok = False
-temp = bme.temperature
-press = bme.pressure
-hum =  bme.humidity
-gas = bme.gas
+temp = 0#bme.temperature
+press = 0#bme.pressure
+hum =  0#bme.humidity
+gas = 0#bme.gas
 
 t1 =DiffTimer()
 t2 =DiffTimer2()
@@ -466,13 +466,13 @@ t3.start()
 #t4.setBase(500)
 #t4.stop()
 
-sensor = LTR329(i2c)
-ch0, ch1, lux_ch0, lux_ch1, total_lux = sensor.get_lux()
-print("Canale 0 (luce visibile):", ch0, "lux")
-print("Canale 1 (luce infrarossa):", ch1, "lux")
-print("Lux luce visibile:", lux_ch0, "lux")
-print("Lux luce infrarossa:", lux_ch1, "lux")
-print("Lux totale:", total_lux, "lux")
+#sensor = LTR329(i2c)
+#ch0, ch1, lux_ch0, lux_ch1, total_lux = sensor.get_lux()
+#print("Canale 0 (luce visibile):", ch0, "lux")
+#print("Canale 1 (luce infrarossa):", ch1, "lux")
+#print("Lux luce visibile:", lux_ch0, "lux")
+#print("Lux luce infrarossa:", lux_ch1, "lux")
+#print("Lux totale:", total_lux, "lux")
 
 # Costante di smoothing per la media esponenziale pesata (0 < alpha <= 1)
 alpha = 0.125
@@ -584,12 +584,12 @@ while True:
                     hum =  1
                     gas = 1
                 else:
-                    temp = bme.temperature
-                    press = bme.pressure
-                    hum = bme.humidity
-                    gas = bme.gas
+                    temp = 0#bme.temperature
+                    press = 0#bme.pressure
+                    hum =  0#bme.humidity
+                    gas = 0#bme.gas
                     
-                ch0, ch1, lux_ch0, lux_ch1, total_lux = sensor.get_lux()               
+                ch0, ch1, lux_ch0, lux_ch1, total_lux = [0, 0, 0, 0, 0] #sensor.get_lux()               
                 visible = lux_ch0
                 infrared = lux_ch1
                 total = total_lux
