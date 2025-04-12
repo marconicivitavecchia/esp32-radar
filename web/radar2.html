@@ -19,11 +19,11 @@
 </head>
 <body>
 	<script>
-		const broker1 = 'wss://mqtt.example.com:8884'; // Sostituisci con l'URL del tuo broker MQTT e assicurati che utilizzi wss (WebSocket Secure) se necessario
-		const broker2 = 'ws://mqtt2.example.com:8083/mqtt';
-		const pushtopic = 'radar/measures'; // Sostituisci con il tuo topic MQTT
-		const cmdtopic = 'radar/commands'; // Sostituisci con il tuo topic MQTT
-		const statetopic = 'radar/state'; // Sostituisci con il tuo topic MQTT
+		const broker1 = 'wss://proxy.marconicloud.it:8884'; // Sostituisci con l'URL del tuo broker MQTT e assicurati che utilizzi wss (WebSocket Secure) se necessario
+		const broker2 = 'ws://broker.emqx.io:8083/mqtt';
+		const pushtopic = 'radar/misure'; // Sostituisci con il tuo topic MQTT
+		const cmdtopic = 'radar/comandi'; // Sostituisci con il tuo topic MQTT
+		const statetopic = 'radar/stato'; // Sostituisci con il tuo topic MQTT
     </script>
 	<div class='col-12 col-s-12' id='txt-banner'  class="header"><h2 class="header">Monitoraggio radar</h2></div>
 	<script src="radar2.js"></script>
